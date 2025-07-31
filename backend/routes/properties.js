@@ -80,20 +80,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/properties/:id - Get single property
-router.get('/:id', async (req, res) => {
-  try {
-    const property = await Property.findById(req.params.id);
-    if (!property) {
-      return res.status(404).json({ error: 'Property not found' });
-    }
-    res.json(property);
-  } catch (error) {
-    console.error('Error fetching property:', error);
-    res.status(500).json({ error: 'Failed to fetch property' });
-  }
-});
-
 // GET /api/properties/filters/options - Get filter options
 router.get('/filters/options', async (req, res) => {
   try {
@@ -145,6 +131,20 @@ router.get('/stats/overview', async (req, res) => {
   } catch (error) {
     console.error('Error fetching stats:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
+  }
+});
+
+// GET /api/properties/:id - Get single property
+router.get('/:id', async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+    res.json(property);
+  } catch (error) {
+    console.error('Error fetching property:', error);
+    res.status(500).json({ error: 'Failed to fetch property' });
   }
 });
 

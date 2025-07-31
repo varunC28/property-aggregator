@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import { getProperties, getFilterOptions, getPropertyById } from '../services/api';
 
 const PropertyContext = createContext();
@@ -84,7 +84,7 @@ const propertyReducer = (state, action) => {
 export const PropertyProvider = ({ children }) => {
   const [state, dispatch] = useReducer(propertyReducer, initialState);
 
-  const fetchProperties = async (filters = state.filters, page = 1) => {
+  const fetchProperties = useCallback(async (filters = state.filters, page = 1) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await getProperties({ ...filters, page });
@@ -92,18 +92,18 @@ export const PropertyProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
-  };
+  }, [state.filters]);
 
-  const fetchFilterOptions = async () => {
+  const fetchFilterOptions = useCallback(async () => {
     try {
       const options = await getFilterOptions();
       dispatch({ type: 'SET_FILTER_OPTIONS', payload: options });
     } catch (error) {
       console.error('Error fetching filter options:', error);
     }
-  };
+  }, []);
 
-  const fetchPropertyById = async (id) => {
+  const fetchPropertyById = useCallback(async (id) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const property = await getPropertyById(id);
@@ -112,29 +112,29 @@ export const PropertyProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
-  };
+  }, []);
 
-  const updateFilters = (newFilters) => {
+  const updateFilters = useCallback((newFilters) => {
     dispatch({ type: 'SET_FILTERS', payload: newFilters });
-  };
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     dispatch({ type: 'CLEAR_FILTERS' });
-  };
+  }, []);
 
-  const setPage = (page) => {
+  const setPage = useCallback((page) => {
     dispatch({ type: 'SET_PAGE', payload: page });
-  };
+  }, []);
 
   // Load filter options on mount
   useEffect(() => {
     fetchFilterOptions();
-  }, []);
+  }, [fetchFilterOptions]);
 
   // Fetch properties when filters or page changes
   useEffect(() => {
     fetchProperties(state.filters, state.pagination.currentPage);
-  }, [state.filters, state.pagination.currentPage]);
+  }, [fetchProperties, state.filters, state.pagination.currentPage]);
 
   const value = {
     ...state,

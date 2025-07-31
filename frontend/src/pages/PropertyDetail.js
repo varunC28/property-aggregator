@@ -23,6 +23,11 @@ const PropertyDetail = () => {
     if (id) {
       fetchPropertyById(id);
     }
+    
+    // Cleanup function to clear selected property when component unmounts
+    return () => {
+      // Optional: Clear selected property to prevent stale data
+    };
   }, [id, fetchPropertyById]);
 
   const formatPrice = (price) => {

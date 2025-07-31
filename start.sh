@@ -12,7 +12,7 @@ check_port() {
 
 # Check if ports are available
 echo "🔍 Checking port availability..."
-check_port 5000
+check_port 5001
 check_port 3000
 
 echo "✅ Ports are available"
@@ -20,7 +20,7 @@ echo "✅ Ports are available"
 # Start backend
 echo "🔧 Starting backend server..."
 cd backend
-npm run dev &
+PORT=5001 npm run dev &
 BACKEND_PID=$!
 
 # Wait a moment for backend to start
@@ -34,7 +34,7 @@ FRONTEND_PID=$!
 
 echo "✅ Both servers are starting..."
 echo "📱 Frontend: http://localhost:3000"
-echo "🔧 Backend: http://localhost:5000"
+echo "🔧 Backend: http://localhost:5001"
 echo ""
 echo "Press Ctrl+C to stop both servers"
 
