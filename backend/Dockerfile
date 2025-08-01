@@ -13,11 +13,17 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
+# Create app directory and set permissions
+RUN mkdir -p /app && chown -R node:node /app
+
 # Set working directory
 WORKDIR /app
 
+# Switch to non-root user
+USER node
+
 # Copy package files first
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
@@ -25,12 +31,10 @@ RUN npm install --legacy-peer-deps
 # Create src directory structure
 RUN mkdir -p src/models src/repositories src/services src/controllers src/routes src/config src/middleware src/utils src/dto
 
-# Copy source files
-COPY src/ src/
-
-# Copy other files
-COPY server-structured.js .
-COPY env.production .env
+# Copy source files with correct ownership
+COPY --chown=node:node src/ src/
+COPY --chown=node:node server-structured.js .
+COPY --chown=node:node env.production .env
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -49,6 +53,10 @@ RUN echo "=== /app contents ===" && \
 
 # Expose port
 EXPOSE 5001
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5001/health || exit 1
 
 # Start command
 CMD ["node", "server-structured.js"]
