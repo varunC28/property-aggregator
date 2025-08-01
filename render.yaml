@@ -3,11 +3,10 @@ services:
   - type: web
     name: property-aggregator-backend
     env: docker
-    region: Singapore  # Corrected capitalization
+    region: Singapore
     plan: free
     rootDirectory: backend
-    buildCommand: docker build -t property-backend .
-    startCommand: docker run -p 5001:5001 property-backend
+    dockerfilePath: ./Dockerfile  # Explicitly specify Dockerfile path
     envVars:
       - key: NODE_ENV
         value: production
@@ -22,11 +21,10 @@ services:
   - type: web
     name: property-aggregator-frontend
     env: docker
-    region: Singapore  # Corrected capitalization
+    region: Singapore
     plan: free
     rootDirectory: frontend
-    buildCommand: docker build -t property-frontend .
-    startCommand: docker run -p 80:80 property-frontend
+    dockerfilePath: ./Dockerfile  # Explicitly specify Dockerfile path
     envVars:
       - key: REACT_APP_API_URL
         value: https://property-aggregator-backend.onrender.com/api
