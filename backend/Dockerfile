@@ -13,17 +13,14 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Create and set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from backend directory
+COPY . .
 
 # Install dependencies
 RUN npm install
-
-# Copy source
-COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -34,4 +31,4 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 EXPOSE 5001
 
 # Start command
-CMD ["node", "server-structured.js"]
+CMD ["node", "src/server-structured.js"]
