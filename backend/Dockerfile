@@ -1,5 +1,5 @@
 # Use Node.js LTS
-FROM node:18-slim
+FROM node:20-slim
 
 # Install basic dependencies including Chromium
 RUN apt-get update && apt-get install -y \
