@@ -2,10 +2,10 @@
   "name": "property-aggregator-backend",
   "version": "1.0.0",
   "description": "Backend API for Property Aggregator Web App",
-  "main": "src/server-structured.js",
+  "main": "server-structured.js",
   "scripts": {
-    "start": "node src/server-structured.js",
-    "dev": "nodemon src/server-structured.js",
+    "start": "node server-structured.js",
+    "dev": "nodemon server-structured.js",
     "build": "echo 'No build step required for Node.js'"
   },
   "keywords": [

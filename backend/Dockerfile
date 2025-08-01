@@ -34,4 +34,4 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 EXPOSE 5001
 
 # Start command
-CMD ["node", "src/server-structured.js"]
+CMD ["node", "server-structured.js"]
