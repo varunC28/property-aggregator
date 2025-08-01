@@ -5,7 +5,8 @@ services:
     env: docker
     region: oregon
     plan: free
-    dockerfilePath: ./backend/Dockerfile
+    rootDirectory: backend  # Add this line
+    dockerfilePath: Dockerfile  # Update this line
     envVars:
       - key: NODE_ENV
         value: production
@@ -24,7 +25,8 @@ services:
     env: docker
     region: oregon
     plan: free
-    dockerfilePath: ./frontend/Dockerfile
+    rootDirectory: frontend  # Add this line
+    dockerfilePath: Dockerfile  # Update this line
     envVars:
       - key: REACT_APP_API_URL
         sync: false  # Set this manually in Render dashboard
