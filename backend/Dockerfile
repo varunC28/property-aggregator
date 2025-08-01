@@ -16,11 +16,21 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy everything
-COPY . .
+# Copy package files first
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
+
+# Create src directory structure
+RUN mkdir -p src/models src/repositories src/services src/controllers src/routes src/config src/middleware src/utils src/dto
+
+# Copy source files
+COPY src/ src/
+
+# Copy other files
+COPY server-structured.js .
+COPY env.production .env
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -28,9 +38,13 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 # Debug: List files to verify structure
-RUN ls -la /app && \
+RUN echo "=== /app contents ===" && \
+    ls -la /app && \
+    echo "=== /app/src contents ===" && \
     ls -la /app/src && \
+    echo "=== /app/src/models contents ===" && \
     ls -la /app/src/models && \
+    echo "=== /app/src/repositories contents ===" && \
     ls -la /app/src/repositories
 
 # Expose port
