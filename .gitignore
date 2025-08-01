@@ -105,8 +105,7 @@ data/
 scraped_data/
 *.json
 
-# AI model files
-models/
+# AI model files - CHANGED to be more specific
 *.model
 
 # SSL certificates
