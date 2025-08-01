@@ -3,30 +3,30 @@ services:
   - type: web
     name: property-aggregator-backend
     env: docker
-    region: oregon
+    region: Singapore  # Corrected capitalization
     plan: free
-    rootDirectory: backend  # Add this line
-    dockerfilePath: Dockerfile  # Update this line
+    rootDirectory: backend
+    buildCommand: docker build -t property-backend .
+    startCommand: docker run -p 5001:5001 property-backend
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5001
       - key: MONGODB_URI
-        sync: false  # Set this manually in Render dashboard
-      - key: CORS_ORIGIN
-        sync: false  # Set this manually in Render dashboard
+        value: mongodb+srv://property-user:potro5-wezfuR-kekqyx@property-agregator.mxho0nz.mongodb.net/property-aggregator?retryWrites=true&w=majority&appName=Property-Agregator
       - key: GEMINI_API_KEY
-        sync: false  # Set this manually in Render dashboard
+        value: AIzaSyCBL_ZIIX5-SWCUd0TImo4IwuaNVYTwYWc
 
-  # Frontend Static Site
+  # Frontend Service
   - type: web
     name: property-aggregator-frontend
     env: docker
-    region: oregon
+    region: Singapore  # Corrected capitalization
     plan: free
-    rootDirectory: frontend  # Add this line
-    dockerfilePath: Dockerfile  # Update this line
+    rootDirectory: frontend
+    buildCommand: docker build -t property-frontend .
+    startCommand: docker run -p 80:80 property-frontend
     envVars:
       - key: REACT_APP_API_URL
-        sync: false  # Set this manually in Render dashboard
+        value: https://property-aggregator-backend.onrender.com/api
