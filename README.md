@@ -67,7 +67,7 @@ npm install
 
 Create a `.env` file in the backend directory:
 ```env
-PORT=5000
+PORT=5001
 NODE_ENV=development
 MONGODB_URI=mongodb://localhost:27017/property-aggregator
 GOOGLE_AI_API_KEY=your_google_ai_api_key_here
@@ -87,9 +87,9 @@ npm install
 #### Start Backend (Terminal 1)
 ```bash
 cd backend
-npm run dev
+npm run dev:structured
 ```
-The backend will start on `http://localhost:5000`
+The backend will start on `http://localhost:5001`
 
 #### Start Frontend (Terminal 2)
 ```bash

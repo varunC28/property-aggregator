@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 class AIProcessor {
   constructor() {
     this.genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || 'demo-key');
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   }
 
   async processPropertyData(rawData) {

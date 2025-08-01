@@ -307,7 +307,7 @@ const ScraperDashboard = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Total Scraped</p>
-                  <p className="text-2xl font-bold text-gray-900">{scrapingResults.stats?.totalScraped || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{scrapingResults.stats?.scraped || 0}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Saved</p>
@@ -386,7 +386,7 @@ const ScraperDashboard = () => {
                 <h3 className="font-medium text-gray-900 mb-2">Recent Properties:</h3>
                 <div className="space-y-2">
                   {status.recentProperties.map((property) => (
-                    <div key={property._id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
+                    <div key={property.id || property._id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
                       <span className="text-sm text-gray-700 truncate">{property.title}</span>
                       <div className="flex items-center space-x-2">
                         <span className="text-xs text-gray-500">{property.source.name}</span>

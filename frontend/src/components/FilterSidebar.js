@@ -93,11 +93,11 @@ const FilterSidebar = ({ filters, filterOptions, onFilterChange, onClearFilters,
                 className="input-field"
               >
                 <option value="">All Cities</option>
-                {filterOptions.cities.map((city) => (
+                {filterOptions?.cities?.map((city) => (
                   <option key={city} value={city}>
                     {city}
                   </option>
-                ))}
+                )) || []}
               </select>
             </div>
 
@@ -123,7 +123,7 @@ const FilterSidebar = ({ filters, filterOptions, onFilterChange, onClearFilters,
                   className="input-field text-sm"
                 />
               </div>
-              {filterOptions.priceRange && (
+              {filterOptions?.priceRange && (
                 <div className="text-xs text-gray-500 mt-1">
                   Range: {formatPrice(filterOptions.priceRange.minPrice)} - {formatPrice(filterOptions.priceRange.maxPrice)}
                 </div>
@@ -142,11 +142,11 @@ const FilterSidebar = ({ filters, filterOptions, onFilterChange, onClearFilters,
                 className="input-field"
               >
                 <option value="">All Types</option>
-                {filterOptions.propertyTypes.map((type) => (
+                {filterOptions?.propertyTypes?.map((type) => (
                   <option key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </option>
-                ))}
+                )) || []}
               </select>
             </div>
 
@@ -162,11 +162,11 @@ const FilterSidebar = ({ filters, filterOptions, onFilterChange, onClearFilters,
                 className="input-field"
               >
                 <option value="">Any BHK</option>
-                {filterOptions.bhkOptions.map((bhk) => (
+                {filterOptions?.bhkOptions?.map((bhk) => (
                   <option key={bhk} value={bhk}>
                     {bhk} BHK
                   </option>
-                ))}
+                )) || []}
               </select>
             </div>
 
@@ -197,11 +197,11 @@ const FilterSidebar = ({ filters, filterOptions, onFilterChange, onClearFilters,
                 className="input-field"
               >
                 <option value="">All Sources</option>
-                {filterOptions.sources.map((source) => (
+                {filterOptions?.sources?.map((source) => (
                   <option key={source} value={source}>
                     {source}
                   </option>
-                ))}
+                )) || []}
               </select>
             </div>
           </div>

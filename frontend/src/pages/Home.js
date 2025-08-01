@@ -192,7 +192,7 @@ const Home = () => {
                 : 'grid-cols-1'
             }`}>
               {properties.map((property) => (
-                <PropertyCard key={property._id} property={property} />
+                <PropertyCard key={property.id || property._id} property={property} />
               ))}
             </div>
 

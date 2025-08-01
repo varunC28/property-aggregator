@@ -11,7 +11,6 @@ import {
   ExternalLink, 
   Calendar,
   Building,
-  Tag,
   Loader
 } from 'lucide-react';
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import { getProperties, getFilterOptions, getPropertyById } from '../services/api';
 
 const PropertyContext = createContext();
@@ -83,25 +83,40 @@ const propertyReducer = (state, action) => {
 
 export const PropertyProvider = ({ children }) => {
   const [state, dispatch] = useReducer(propertyReducer, initialState);
+  const requestTimeoutRef = useRef(null);
 
   const fetchProperties = useCallback(async (filters = state.filters, page = 1) => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      const response = await getProperties({ ...filters, page });
-      dispatch({ type: 'SET_PROPERTIES', payload: response });
+      // Prevent duplicate requests while loading
+      if (state.loading) return;
+      
+      // Clear any pending timeout
+      if (requestTimeoutRef.current) {
+        clearTimeout(requestTimeoutRef.current);
+      }
+      
+      // Debounce requests to prevent rapid successive calls
+      requestTimeoutRef.current = setTimeout(async () => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        const response = await getProperties({ ...filters, page });
+        dispatch({ type: 'SET_PROPERTIES', payload: response });
+      }, 300); // 300ms debounce
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
-  }, [state.filters]);
+  }, []); // No dependencies to prevent infinite re-renders
 
   const fetchFilterOptions = useCallback(async () => {
     try {
+      // Only fetch if we don't already have filter options
+      if (state.filterOptions.cities && state.filterOptions.cities.length > 0) return;
+      
       const options = await getFilterOptions();
       dispatch({ type: 'SET_FILTER_OPTIONS', payload: options });
     } catch (error) {
       console.error('Error fetching filter options:', error);
     }
-  }, []);
+  }, []); // Remove dependencies to prevent infinite re-renders
 
   const fetchPropertyById = useCallback(async (id) => {
     try {
@@ -135,6 +150,15 @@ export const PropertyProvider = ({ children }) => {
   useEffect(() => {
     fetchProperties(state.filters, state.pagination.currentPage);
   }, [fetchProperties, state.filters, state.pagination.currentPage]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (requestTimeoutRef.current) {
+        clearTimeout(requestTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const value = {
     ...state,

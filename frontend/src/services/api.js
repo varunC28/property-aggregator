@@ -24,7 +24,9 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    return response.data;
+    // If the response has a data property (structured backend), return the nested data
+    // Otherwise return the response data as is (for backward compatibility)
+    return response.data?.data ? response.data.data : response.data;
   },
   (error) => {
     console.error('API Error:', error.response?.data || error.message);

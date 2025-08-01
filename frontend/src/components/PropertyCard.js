@@ -86,7 +86,7 @@ const PropertyCard = ({ property }) => {
       {/* Content */}
       <div className="p-4">
         {/* Title */}
-        <Link to={`/property/${property._id}`}>
+        <Link to={`/property/${property.id || property._id}`}>
           <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 hover:text-primary-600 transition-colors">
             {property.title}
           </h3>
@@ -149,7 +149,7 @@ const PropertyCard = ({ property }) => {
         {/* Actions */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <Link
-            to={`/property/${property._id}`}
+            to={`/property/${property.id || property._id}`}
             className="btn-primary text-sm"
           >
             View Details
