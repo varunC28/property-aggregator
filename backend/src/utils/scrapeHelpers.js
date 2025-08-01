@@ -5,16 +5,13 @@
 // 3. globalQueue     – P-Queue instance to throttle concurrent HTTP/page loads
 
 const axios = require('axios');
-const PQueue = require('p-queue');
 
-// Global concurrency limit (3 parallel pages by default)
-const globalQueue = new PQueue({ concurrency: 3 });
 
 /**
  * Fetch the first `byteLimit` bytes of an HTML page (or until </body> seen).
  * Returns raw HTML string – good enough for Cheerio without waiting for full payload.
  */
-async function fetchStream(url, byteLimit = 300 * 1024, timeout = 15000) {
+async function fetchStream(url, byteLimit = 300 * 1024, timeout = 60000) {
   const { data: stream } = await axios.get(url, {
     responseType: 'stream',
     timeout,
@@ -62,6 +59,5 @@ async function selectorRace(page, selectors = [], timeout = 4000) {
 
 module.exports = {
   fetchStream,
-  selectorRace,
-  globalQueue
+  selectorRace
 };

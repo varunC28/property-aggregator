@@ -1,0 +1,30 @@
+services:
+  # Backend API Service
+  - type: web
+    name: property-aggregator-backend
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5001
+      - key: MONGODB_URI
+        sync: false  # Set this manually in Render dashboard
+      - key: CORS_ORIGIN
+        sync: false  # Set this manually in Render dashboard
+      - key: GEMINI_API_KEY
+        sync: false  # Set this manually in Render dashboard
+
+  # Frontend Static Site
+  - type: web
+    name: property-aggregator-frontend
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: REACT_APP_API_URL
+        sync: false  # Set this manually in Render dashboard
