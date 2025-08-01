@@ -16,11 +16,14 @@ RUN apt-get update && apt-get install -y \
 # Create and set working directory
 WORKDIR /app
 
-# Copy package files from backend directory
-COPY . .
+# Copy package files first
+COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies with legacy peer deps to handle conflicts
+RUN npm install --legacy-peer-deps
+
+# Copy the rest of the application
+COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
