@@ -6,7 +6,7 @@ services:
     region: Singapore
     plan: free
     rootDirectory: backend
-    dockerfilePath: ./Dockerfile  # Explicitly specify Dockerfile path
+    dockerfilePath: Dockerfile  # Removed ./ prefix
     envVars:
       - key: NODE_ENV
         value: production
@@ -24,7 +24,7 @@ services:
     region: Singapore
     plan: free
     rootDirectory: frontend
-    dockerfilePath: ./Dockerfile  # Explicitly specify Dockerfile path
+    dockerfilePath: Dockerfile  # Removed ./ prefix
     envVars:
       - key: REACT_APP_API_URL
         value: https://property-aggregator-backend.onrender.com/api
