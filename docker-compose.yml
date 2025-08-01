@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=production
+      - PORT=5001
+      - MONGODB_URI=mongodb+srv://property-user:potro5-wezfuR-kekqyx@property-agregator.mxho0nz.mongodb.net/property-aggregator?retryWrites=true&w=majority&appName=Property-Agregator
+      - CORS_ORIGIN=http://localhost:3000
+      - GEMINI_API_KEY=AIzaSyCBL_ZIIX5-SWCUd0TImo4IwuaNVYTwYWc
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001/api
+    depends_on:
+      - backend
+    restart: unless-stopped

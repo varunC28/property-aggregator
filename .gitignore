@@ -114,7 +114,7 @@ models/
 *.key
 *.crt
 
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore 
+# Docker - REMOVED these lines to allow Dockerfiles to be tracked
+# Dockerfile
+# docker-compose.yml
+# .dockerignore
