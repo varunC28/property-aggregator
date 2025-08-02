@@ -1,26 +1,17 @@
 # Build stage
-FROM node:20-slim as build
+FROM node:20-alpine as build
 
 # Set working directory
 WORKDIR /app
 
-# Debug: List contents to verify build context
-RUN ls -la
-
 # Copy package files from frontend directory
 COPY frontend/package*.json ./
-
-# Debug: Verify package.json was copied
-RUN ls -la package*.json
 
 # Install dependencies
 RUN npm install
 
 # Copy frontend source
 COPY frontend/ .
-
-# Debug: List contents after copying
-RUN ls -la
 
 # Build app
 RUN npm run build
@@ -32,7 +23,7 @@ FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80
