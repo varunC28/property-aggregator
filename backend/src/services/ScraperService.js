@@ -5,7 +5,7 @@ const PropertyService = require('./PropertyService');
 const PropertyDto = require('../dto/PropertyDto');
 const AppConfig = require('../config/app');
 const { v4: uuidv4 } = require('uuid');
-const AIProcessor = require('../../services/aiProcessor');
+const AIProcessor = require('./aiProcessor');
 
 class ScraperService {
   constructor() {
