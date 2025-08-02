@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine as build
+FROM node:20-slim as build
 
 # Set working directory
 WORKDIR /app
@@ -30,7 +30,7 @@ RUN ls -la
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:stable-slim
 
 # Copy built assets
 COPY --from=build /app/build /usr/share/nginx/html
