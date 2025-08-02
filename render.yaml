@@ -16,6 +16,8 @@ services:
         value: mongodb+srv://property-user:potro5-wezfuR-kekqyx@property-agregator.mxho0nz.mongodb.net/property-aggregator?retryWrites=true&w=majority&appName=Property-Agregator
       - key: GEMINI_API_KEY
         value: AIzaSyCBL_ZIIX5-SWCUd0TImo4IwuaNVYTwYWc
+      - key: CORS_ORIGIN
+        value: https://property-aggregator-frontend.onrender.com
 
   # Frontend Service
   - type: web
