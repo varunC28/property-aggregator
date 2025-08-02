@@ -7,7 +7,7 @@ WORKDIR /app
 # Debug: Show what's in the build context
 RUN ls -la
 
-# Copy package files (build context is already frontend directory)
+# Copy package files
 COPY package*.json ./
 
 # Debug: Verify package.json was copied
@@ -16,7 +16,7 @@ RUN ls -la package*.json
 # Install dependencies
 RUN npm install
 
-# Copy source (build context is already frontend directory)
+# Copy source
 COPY . .
 
 # Debug: Show final structure
@@ -31,7 +31,7 @@ FROM nginx:alpine
 # Copy built assets
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy nginx config (build context is already frontend directory)
+# Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
