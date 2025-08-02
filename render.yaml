@@ -19,13 +19,14 @@ services:
       - key: CORS_ORIGIN
         value: https://property-aggregator-frontend.onrender.com
 
-  # Frontend Service
+  # Frontend Service (Static Site)
   - type: web
     name: property-aggregator-frontend
-    env: docker
+    env: static
     region: Singapore
     plan: free
-    dockerfilePath: frontend/Dockerfile
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://property-aggregator-backend.onrender.com/api
