@@ -4,14 +4,23 @@ FROM node:20-alpine as build
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Debug: Show what's in the build context
+RUN ls -la
+
+# Copy package files (explicitly from frontend directory)
+COPY frontend/package*.json ./
+
+# Debug: Verify package.json was copied
+RUN ls -la package*.json
 
 # Install dependencies
 RUN npm install
 
-# Copy source
-COPY . .
+# Copy frontend source (explicitly from frontend directory)
+COPY frontend/ .
+
+# Debug: Show final structure
+RUN ls -la
 
 # Build app
 RUN npm run build
@@ -22,8 +31,8 @@ FROM nginx:alpine
 # Copy built assets
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx config (explicitly from frontend directory)
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 80
