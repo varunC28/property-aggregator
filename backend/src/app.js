@@ -150,7 +150,7 @@ class App {
   }
 
   /**
-   * Start the server
+   * Initialize the application (connect to database, etc.)
    */
   async start() {
     try {
@@ -160,50 +160,25 @@ class App {
       // Connect to database
       await DatabaseConfig.connect();
 
-      // Start server
-      const server = this.app.listen(AppConfig.PORT, () => {
-        console.log(`
+      console.log(`
 🚀 Property Aggregator API Server Started!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌐 Server: http://localhost:${AppConfig.PORT}
-📚 API Docs: http://localhost:${AppConfig.PORT}${AppConfig.API_PREFIX}/docs
-🏥 Health Check: http://localhost:${AppConfig.PORT}${AppConfig.API_PREFIX}/health
-🏠 Properties: http://localhost:${AppConfig.PORT}${AppConfig.API_PREFIX}/properties
-🔧 Scraper: http://localhost:${AppConfig.PORT}${AppConfig.API_PREFIX}/scraper
+🌐 Server: http://localhost:${process.env.PORT || AppConfig.PORT}
+📚 API Docs: http://localhost:${process.env.PORT || AppConfig.PORT}${AppConfig.API_PREFIX}/docs
+🏥 Health Check: http://localhost:${process.env.PORT || AppConfig.PORT}${AppConfig.API_PREFIX}/health
+🏠 Properties: http://localhost:${process.env.PORT || AppConfig.PORT}${AppConfig.API_PREFIX}/properties
+🔧 Scraper: http://localhost:${process.env.PORT || AppConfig.PORT}${AppConfig.API_PREFIX}/scraper
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Environment: ${AppConfig.NODE_ENV}
 Database: ${AppConfig.MONGODB_URI}
 CORS Origin: ${AppConfig.CORS_ORIGIN}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        `);
-      });
+      `);
 
-      // Handle server shutdown gracefully
-      const gracefulShutdown = async (signal) => {
-        console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
-        
-        server.close(async () => {
-          console.log('🔌 HTTP server closed');
-          
-          try {
-            await DatabaseConfig.disconnect();
-            console.log('✅ Graceful shutdown completed');
-            process.exit(0);
-          } catch (error) {
-            console.error('❌ Error during shutdown:', error);
-            process.exit(1);
-          }
-        });
-      };
-
-      // Listen for shutdown signals
-      process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-      process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-      return server;
+      return true;
     } catch (error) {
-      console.error('❌ Failed to start server:', error);
-      process.exit(1);
+      console.error('❌ Failed to initialize server:', error);
+      throw error;
     }
   }
 
