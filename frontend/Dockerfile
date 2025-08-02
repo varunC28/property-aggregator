@@ -4,14 +4,23 @@ FROM node:20-slim as build
 # Set working directory
 WORKDIR /app
 
+# Debug: List contents to verify build context
+RUN ls -la
+
 # Copy package files
 COPY package*.json ./
+
+# Debug: Verify package.json was copied
+RUN ls -la package*.json
 
 # Install dependencies
 RUN npm install
 
 # Copy source
 COPY . .
+
+# Debug: List contents after copying
+RUN ls -la
 
 # Build app
 RUN npm run build
