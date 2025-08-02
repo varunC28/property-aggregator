@@ -25,7 +25,7 @@ services:
     env: static
     region: Singapore
     plan: free
-    buildCommand: npm run install:all && npm run build
+    buildCommand: ./build-frontend.sh
     staticPublishPath: frontend/build
     envVars:
       - key: REACT_APP_API_URL
