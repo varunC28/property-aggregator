@@ -7,8 +7,8 @@ WORKDIR /app
 # Debug: List contents to verify build context
 RUN ls -la
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from frontend directory
+COPY frontend/package*.json ./
 
 # Debug: Verify package.json was copied
 RUN ls -la package*.json
@@ -16,8 +16,8 @@ RUN ls -la package*.json
 # Install dependencies
 RUN npm install
 
-# Copy source
-COPY . .
+# Copy frontend source
+COPY frontend/ .
 
 # Debug: List contents after copying
 RUN ls -la
