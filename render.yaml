@@ -25,8 +25,7 @@ services:
     env: docker
     region: Singapore
     plan: free
-    rootDirectory: frontend
-    dockerfilePath: Dockerfile
+    dockerfilePath: frontend/Dockerfile
     envVars:
       - key: REACT_APP_API_URL
         value: https://property-aggregator-backend.onrender.com/api
