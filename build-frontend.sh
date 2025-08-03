@@ -33,7 +33,7 @@ echo "✅ package.json found"
 echo "Installing dependencies..."
 npm install
 
-# Build the app
+# Build the app with correct API URL
 echo "Building the app..."
 echo "API URL: $REACT_APP_API_URL"
 REACT_APP_API_URL=https://property-aggregator-backend.onrender.com/api npm run build
