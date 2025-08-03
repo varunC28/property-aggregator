@@ -298,6 +298,11 @@ const PropertyDetail = () => {
             )}
 
             {selectedProperty.source.url && (
+              selectedProperty.source.url.includes('housing.com/in/') || 
+              selectedProperty.source.url.includes('olx.in/') || 
+              selectedProperty.source.url.includes('magicbricks.com/') ||
+              selectedProperty.source.url.includes('www.magicbricks.com/')
+            ) ? (
               <div className="pt-4 border-t border-gray-200">
                 <a
                   href={selectedProperty.source.url}
@@ -309,7 +314,7 @@ const PropertyDetail = () => {
                   View Original Listing
                 </a>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Property Details */}

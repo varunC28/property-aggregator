@@ -48,13 +48,7 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Stats Badge */}
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-              <BarChart3 className="w-4 h-4" />
-              <span>Live Data</span>
-            </div>
-          </div>
+
         </div>
       </div>
     </nav>
