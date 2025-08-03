@@ -211,6 +211,12 @@ class ScraperService {
       // Try real scraping first
       let properties = await this._withRetry(() => this._scrapeHousingWithPuppeteer(city, limit), 3, 8000);
       
+      console.log(`[Housing.com] Real scraping returned ${properties.length} properties`);
+      if (properties.length > 0) {
+        console.log(`[Housing.com] First property link: ${properties[0].link || 'NO LINK'}`);
+        console.log(`[Housing.com] Properties with links: ${properties.filter(p => p.link && p.link.length > 0).length}/${properties.length}`);
+      }
+      
       // If real scraping fails, use fallback data
       if (properties.length === 0) {
         console.log('Real scraping failed, using fallback data...');
@@ -247,6 +253,12 @@ class ScraperService {
       // Try real scraping first
       let properties = await this._withRetry(() => this._scrapeOLXWithCheerio(city, limit), 3, 8000);
       
+      console.log(`[OLX] Real scraping returned ${properties.length} properties`);
+      if (properties.length > 0) {
+        console.log(`[OLX] First property link: ${properties[0].link || 'NO LINK'}`);
+        console.log(`[OLX] Properties with links: ${properties.filter(p => p.link && p.link.length > 0).length}/${properties.length}`);
+      }
+      
       // If real scraping fails, use fallback data
       if (properties.length === 0) {
         console.log('Real scraping failed, using fallback data...');
@@ -281,6 +293,12 @@ class ScraperService {
 
       // Try real scraping first
       let properties = await this._withRetry(() => this._scrapeMagicBricksWithCheerio(city, limit), 3, 8000);
+      
+      console.log(`[MagicBricks] Real scraping returned ${properties.length} properties`);
+      if (properties.length > 0) {
+        console.log(`[MagicBricks] First property link: ${properties[0].link || 'NO LINK'}`);
+        console.log(`[MagicBricks] Properties with links: ${properties.filter(p => p.link && p.link.length > 0).length}/${properties.length}`);
+      }
       
       // If real scraping fails, use fallback data
       if (properties.length === 0) {
