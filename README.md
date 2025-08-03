@@ -55,7 +55,7 @@ Before running this application, make sure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/varunC28/property-aggregator.git
 cd property-aggregator
 ```
 
@@ -215,6 +215,13 @@ The application is fully responsive and works on:
 ```
 
 ## 🚀 Deployment
+
+### Live Application
+The application is deployed on Render:
+
+- **Frontend**: https://property-aggregator-frontend.onrender.com
+- **Backend API**: https://property-aggregator-backend.onrender.com
+- **API Documentation**: https://property-aggregator-backend.onrender.com/api/docs
 
 ### Backend Deployment
 1. Set up environment variables for production

@@ -179,10 +179,15 @@ node ai-data-parser-demo.js
 
 ## 🎯 **Next Steps**
 
+### **Live Application**
+- **Frontend**: https://property-aggregator-frontend.onrender.com
+- **Backend API**: https://property-aggregator-backend.onrender.com
+- **API Documentation**: https://property-aggregator-backend.onrender.com/api/docs
+
 ### **Immediate**
 1. **Test the demos** with different cities and limits
 2. **Import Postman collection** and explore all endpoints
-3. **Check the frontend** at `http://localhost:3000`
+3. **Check the frontend** at `http://localhost:3000` (local) or the live URL above
 
 ### **Future Enhancements**
 1. **Real scraping optimization** for better success rates

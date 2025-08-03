@@ -157,6 +157,12 @@ CORS_ORIGIN=http://localhost:3000
 
 ## 📱 Usage Guide
 
+### Live Application
+- **Frontend**: https://property-aggregator-frontend.onrender.com
+- **Backend API**: https://property-aggregator-backend.onrender.com
+- **API Documentation**: https://property-aggregator-backend.onrender.com/api/docs
+
+### Local Development
 1. **Start the Application**
    - Run `./demo.sh` or `npm start`
    - Open http://localhost:3000
