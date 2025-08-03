@@ -649,7 +649,7 @@ class ScraperService {
         location: `Premium ${city}`,
         config: `${Math.floor(Math.random() * 3) + 1} BHK`,
         image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400',
-        link: 'https://magicbricks.com'
+        link: `https://magicbricks.com/property-${city.toLowerCase()}-${i + 1}-${uuidv4()}`
       }, city, i));
     }
     return properties;
