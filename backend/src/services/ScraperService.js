@@ -598,7 +598,7 @@ class ScraperService {
       
       const timestamp = Date.now() + i; // Add index to make each timestamp unique
         properties.push(this._formatHousingProperty({
-          title: `${bhk} BHK ${propertyType} for Sale in ${area} ${city}`,
+          title: `${bhk} BHK ${propertyType} for Sale in ${area} ${city} - ${Date.now() + i}`,
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
           description: `Beautiful ${bhk} BHK ${propertyType.toLowerCase()} in ${area} ${city}. Modern amenities, great location, and excellent connectivity.`,
@@ -627,7 +627,7 @@ class ScraperService {
       
       const timestamp = Date.now() + i; // Add index to make each timestamp unique
         properties.push(this._formatOLXProperty({
-          title: `${bhk} BHK ${propertyType} for Sale in ${area} ${city}`,
+          title: `${bhk} BHK ${propertyType} for Sale in ${area} ${city} - ${Date.now() + i}`,
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
           image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
@@ -644,7 +644,7 @@ class ScraperService {
     const properties = [];
     for (let i = 0; i < limit; i++) {
       properties.push(this._formatMagicBricksProperty({
-        title: `MagicBricks Property ${i + 1} in ${city}`,
+        title: `MagicBricks Property ${i + 1} in ${city} - ${Date.now() + i}`,
         price: `₹${(Math.floor(Math.random() * 80) + 20)} Lakh`,
         location: `Premium ${city}`,
         config: `${Math.floor(Math.random() * 3) + 1} BHK`,

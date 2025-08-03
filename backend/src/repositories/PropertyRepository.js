@@ -303,7 +303,7 @@ class PropertyRepository {
     try {
       const count = await Property.countDocuments({ 
         title: title,
-        'source.name': sourceName 
+        'source.name': sourceName
       });
       return count > 0;
     } catch (error) {
