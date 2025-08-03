@@ -155,17 +155,37 @@ const PropertyCard = ({ property }) => {
             View Details
           </Link>
           
-          {property.source.url && (
-            <a
-              href={property.source.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center space-x-1 text-gray-500 hover:text-primary-600 transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span className="text-sm">Original</span>
-            </a>
-          )}
+          {(() => {
+            const getSourceUrl = () => {
+              if (property.source?.url) return property.source.url;
+              
+              // Fallback URLs based on source name
+              const city = property.location?.city || 'mumbai';
+              switch (property.source?.name) {
+                case 'Housing.com':
+                  return `https://housing.com/in/buy/${city.toLowerCase()}`;
+                case 'OLX':
+                  return `https://olx.in/properties-for-sale/${city.toLowerCase()}`;
+                case 'MagicBricks':
+                  return `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`;
+                default:
+                  return null;
+              }
+            };
+            
+            const sourceUrl = getSourceUrl();
+            return sourceUrl ? (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary text-sm flex items-center space-x-1"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Original</span>
+              </a>
+            ) : null;
+          })()}
         </div>
       </div>
     </div>

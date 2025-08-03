@@ -569,7 +569,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400'],
       source: {
         name: 'MagicBricks',
-        url: prop.link || `https://magicbricks.com/property-${city.toLowerCase()}-${index + 1}-${uuidv4()}`,
+        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}&ref=property-${index + 1}`,
         scrapedAt: new Date()
       },
       contact: {
