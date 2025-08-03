@@ -603,7 +603,7 @@ class ScraperService {
           location: `${area} ${city}`,
           description: `Beautiful ${bhk} BHK ${propertyType.toLowerCase()} in ${area} ${city}. Modern amenities, great location, and excellent connectivity.`,
           image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
-          link: `https://housing.com/property-${city.toLowerCase()}-${i + 1}-${uuidv4()}`
+          link: `https://housing.com/in/buy/${city.toLowerCase()}?ref=property-${i + 1}`
         }, city, i));
     }
     console.log(`Generated ${properties.length} fallback properties for ${city}`);
@@ -631,7 +631,7 @@ class ScraperService {
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
           image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-          link: `https://olx.in/property-${city.toLowerCase()}-${i + 1}-${uuidv4()}`
+          link: `https://olx.in/properties-for-sale/${city.toLowerCase()}?ref=property-${i + 1}`
         }, city, i));
     }
     return properties;
@@ -649,7 +649,7 @@ class ScraperService {
         location: `Premium ${city}`,
         config: `${Math.floor(Math.random() * 3) + 1} BHK`,
         image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400',
-        link: `https://magicbricks.com/property-${city.toLowerCase()}-${i + 1}-${uuidv4()}`
+        link: `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}&ref=property-${i + 1}`
       }, city, i));
     }
     return properties;

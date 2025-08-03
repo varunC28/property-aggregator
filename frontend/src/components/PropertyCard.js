@@ -156,11 +156,6 @@ const PropertyCard = ({ property }) => {
           </Link>
           
           {property.source.url && (
-            property.source.url.includes('housing.com/in/') || 
-            property.source.url.includes('olx.in/') || 
-            property.source.url.includes('magicbricks.com/') ||
-            property.source.url.includes('www.magicbricks.com/')
-          ) ? (
             <a
               href={property.source.url}
               target="_blank"
@@ -170,7 +165,7 @@ const PropertyCard = ({ property }) => {
               <ExternalLink className="w-4 h-4" />
               <span className="text-sm">Original</span>
             </a>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
