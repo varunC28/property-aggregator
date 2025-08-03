@@ -1013,11 +1013,17 @@ class ScraperService {
    */
   async clearScrapedData() {
     try {
-      // This would typically clear all scraped properties
-      // For now, we'll just return a success message
+      const PropertyRepository = require('../repositories/PropertyRepository');
+      
+      // Delete all properties from the database
+      const result = await PropertyRepository.deleteAll();
+      
+      console.log(`🗑️ Cleared ${result.deletedCount || 0} properties from database`);
+      
       return {
         success: true,
-        message: 'Scraped data cleared successfully'
+        message: `Successfully cleared ${result.deletedCount || 0} properties`,
+        deletedCount: result.deletedCount || 0
       };
     } catch (error) {
       throw new Error(`Failed to clear scraped data: ${error.message}`);

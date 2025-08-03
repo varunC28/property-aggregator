@@ -375,6 +375,17 @@ class PropertyRepository {
 
     return query;
   }
+
+  /**
+   * Delete all properties
+   */
+  async deleteAll() {
+    try {
+      return await Property.deleteMany({});
+    } catch (error) {
+      throw new Error(`Failed to delete all properties: ${error.message}`);
+    }
+  }
 }
 
 module.exports = new PropertyRepository();
