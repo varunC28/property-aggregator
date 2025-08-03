@@ -873,7 +873,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : [],
       source: {
         name: 'Housing.com',
-        url: prop.link || `https://housing.com/in/buy/${city.toLowerCase()}?search=properties`, // Only use fallback if absolutely no link found
+        url: prop.link || `https://housing.com/in/buy/searches/P36xt`, // Use working Mumbai URL as fallback
         scrapedAt: new Date()
       },
       contact: {
@@ -909,7 +909,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : [],
       source: {
         name: 'OLX',
-        url: prop.link || `https://www.olx.in/items/q-property-${city.toLowerCase()}?search=properties`, // Only use fallback if absolutely no link found
+        url: prop.link || `https://www.olx.in/items/q-property-${city.toLowerCase()}`, // Use simple search URL as fallback
         scrapedAt: new Date()
       },
       contact: {
@@ -945,7 +945,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : [],
       source: {
         name: 'MagicBricks',
-        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}&search=properties`, // Only use fallback if absolutely no link found
+        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`, // Use simple search URL as fallback
         scrapedAt: new Date()
       },
       contact: {
