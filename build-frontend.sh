@@ -35,7 +35,8 @@ npm install
 
 # Build the app
 echo "Building the app..."
-npm run build
+echo "API URL: $REACT_APP_API_URL"
+REACT_APP_API_URL=https://property-aggregator-backend.onrender.com/api npm run build
 
 echo "✅ Build completed successfully!"
 echo "Build output directory:"
