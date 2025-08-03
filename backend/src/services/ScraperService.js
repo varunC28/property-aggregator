@@ -316,10 +316,10 @@ class ScraperService {
       const page = await browser.newPage();
       await page.setUserAgent(this.scraperConfig.USER_AGENT);
               const searchUrls = [
+          `https://housing.com/in/buy/searches/P36xt`,  // Mumbai properties (working)
           `https://housing.com/in/buy/${city.toLowerCase()}`,
           `https://housing.com/in/buy/searches/${city.toLowerCase()}`,
-          `https://housing.com/in/buy/searches/${city.toLowerCase()}-properties`,
-          `https://housing.com/in/buy/searches/${city.toLowerCase()}-real-estate`
+          `https://housing.com/in/buy/searches/${city.toLowerCase()}-properties`
         ];
       const tryUrl = async (url) => {
         console.log(`Trying Housing.com URL: ${url}`);
@@ -393,7 +393,7 @@ class ScraperService {
     try {
       console.log(`[OLX] Attempting to scrape for ${city}...`);
       
-      const searchUrl = `https://olx.in/properties-for-sale/${city.toLowerCase()}`;
+      const searchUrl = `https://www.olx.in/items/q-property-${city.toLowerCase()}`;
       console.log(`[OLX] Scraping URL: ${searchUrl}`);
       
       const html = await fetchStream(searchUrl);
@@ -445,7 +445,7 @@ class ScraperService {
     try {
       console.log(`[MagicBricks] Scraping for ${city}...`);
       
-      const searchUrl = `https://www.magicbricks.com/property-for-sale/residential-real-estate?proptype=Multistorey-Apartment,Builder-Floor,Penthouse,Studio-Apartment&cityName=${city}`;
+      const searchUrl = `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`;
       console.log(`[MagicBricks] Scraping URL: ${searchUrl}`);
       
       const html = await fetchStream(searchUrl);
@@ -647,7 +647,7 @@ class ScraperService {
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
           image: this._getRandomImages('olx', i)[0],
-          link: `https://olx.in/properties-for-sale/${city.toLowerCase()}`
+          link: `https://www.olx.in/items/q-property-${city.toLowerCase()}`
         }, city, i));
     }
     return properties;
