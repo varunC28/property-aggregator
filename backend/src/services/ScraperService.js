@@ -338,48 +338,84 @@ class ScraperService {
       const html = await page.content();
       console.log(`[Housing.com] HTML length: ${html.length}`);
       
-      // Try to find cards using the known selector
-      const cardCount = await page.evaluate(() => {
-        return document.querySelectorAll('[class*="T_cardV1Style"]').length;
-      });
+      // Try multiple selectors for property cards
+      const selectors = [
+        '[class*="T_cardV1Style"]',
+        '[class*="property-card"]',
+        '[class*="listing-card"]',
+        '[data-testid*="property"]',
+        'article',
+        '.property-item'
+      ];
       
-      console.log(`[Housing.com] Found ${cardCount} cards with T_cardV1Style`);
+      let cardCount = 0;
+      let cards = [];
       
-      let properties = [];
-      
-      if (cardCount > 0) {
-        properties = await page.evaluate((limit) => {
-          const cards = Array.from(document.querySelectorAll('[class*="T_cardV1Style"]'));
-          
-          return cards.slice(0, limit).map(card => {
-            const text = card.textContent || '';
-            const lines = text.split('\n').filter(line => line.trim());
-            
-            // Extract title (usually first meaningful line)
-            const title = lines.find(line => line.length > 10) || lines[0] || '';
-            
-            // Extract price (look for ₹ symbol)
-            const priceMatch = text.match(/₹[\d.,\s]+(L|Cr|Lac|Crore|K)?/);
-            const price = priceMatch ? priceMatch[0] : '';
-            
-            // Extract location (look for "in" keyword)
-            const locationMatch = text.match(/in\s+([^₹\n]+)/i);
-            const location = locationMatch ? locationMatch[1].trim() : '';
-            
-            // Get image and link
-            const imgEl = card.querySelector('img');
-            const linkEl = card.querySelector('a');
-            
-            return {
-              title: title.trim(),
-              price: price.trim(),
-              location: location,
-              image: imgEl?.src || '',
-              link: linkEl?.href || ''
-            };
-          });
-        }, limit);
+      for (const selector of selectors) {
+        cardCount = await page.evaluate((sel) => {
+          return document.querySelectorAll(sel).length;
+        }, selector);
+        
+        if (cardCount > 0) {
+          console.log(`[Housing.com] Found ${cardCount} cards with selector: ${selector}`);
+          cards = await page.evaluate((sel, lim) => {
+            const elements = Array.from(document.querySelectorAll(sel));
+            return elements.slice(0, lim).map(card => {
+              // Try to find title
+              const titleSelectors = ['h1', 'h2', 'h3', '[class*="title"]', '[class*="heading"]'];
+              let title = '';
+              for (const titleSel of titleSelectors) {
+                const titleEl = card.querySelector(titleSel);
+                if (titleEl && titleEl.textContent.trim()) {
+                  title = titleEl.textContent.trim();
+                  break;
+                }
+              }
+              
+              // Try to find price
+              const priceSelectors = ['[class*="price"]', '[class*="amount"]', '.price', '.amount'];
+              let price = '';
+              for (const priceSel of priceSelectors) {
+                const priceEl = card.querySelector(priceSel);
+                if (priceEl && priceEl.textContent.includes('₹')) {
+                  price = priceEl.textContent.trim();
+                  break;
+                }
+              }
+              
+              // Try to find location
+              const locationSelectors = ['[class*="location"]', '[class*="address"]', '.location', '.address'];
+              let location = '';
+              for (const locationSel of locationSelectors) {
+                const locationEl = card.querySelector(locationSel);
+                if (locationEl && locationEl.textContent.trim()) {
+                  location = locationEl.textContent.trim();
+                  break;
+                }
+              }
+              
+              // Get image
+              const imgEl = card.querySelector('img');
+              const image = imgEl?.src || imgEl?.getAttribute('data-src') || '';
+              
+              // Get link
+              const linkEl = card.querySelector('a');
+              const link = linkEl?.href || '';
+              
+              return {
+                title: title || card.textContent.slice(0, 100).trim(),
+                price: price || '',
+                location: location || '',
+                image: image,
+                link: link
+              };
+            });
+          }, selector, limit);
+          break;
+        }
       }
+      
+      let properties = cards;
       await page.close();
       if (!Array.isArray(properties)) {
         console.error('[Housing.com] Properties is not an array. HTML snippet:', html.slice(0, 500));
@@ -403,10 +439,68 @@ class ScraperService {
     try {
       console.log(`[OLX] Attempting to scrape for ${city}...`);
       
-      // For now, skip OLX real scraping due to blocking/timeout issues
-      // Return empty array so fallback is used
-      console.log(`[OLX] Skipping real scraping due to timeout issues, using fallback`);
-      return [];
+      const searchUrl = `https://olx.in/properties-for-sale/${city.toLowerCase()}`;
+      console.log(`[OLX] Scraping URL: ${searchUrl}`);
+      
+      const html = await fetchStream(searchUrl);
+      console.log(`[OLX] HTML length: ${html.length}`);
+      
+      const $ = require('cheerio').load(html);
+      
+      // Try multiple selectors for OLX property cards
+      const selectors = [
+        '[data-cy="l-card"]',
+        '.property-card',
+        '.listing-card',
+        '[class*="property"]',
+        '[class*="listing"]',
+        'article'
+      ];
+      
+      let properties = [];
+      
+      for (const selector of selectors) {
+        const cards = $(selector);
+        console.log(`[OLX] Found ${cards.length} cards with selector: ${selector}`);
+        
+        if (cards.length > 0) {
+          cards.each((index, element) => {
+            if (index >= limit) return false;
+            
+            const $el = $(element);
+            
+            // Extract title
+            const title = $el.find('h6, h5, h4, [class*="title"], [class*="heading"]').first().text().trim();
+            
+            // Extract price
+            const price = $el.find('[class*="price"], [class*="amount"], .price, .amount').first().text().trim();
+            
+            // Extract location
+            const location = $el.find('[class*="location"], [class*="address"], .location, .address').first().text().trim();
+            
+            // Extract image
+            const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
+            
+            // Extract link
+            const link = $el.find('a').first().attr('href') || '';
+            const fullLink = link.startsWith('http') ? link : `https://olx.in${link}`;
+            
+            if (title && price) {
+              properties.push({
+                title,
+                price,
+                location,
+                image,
+                link: fullLink
+              });
+            }
+          });
+          break;
+        }
+      }
+      
+      console.log(`[OLX] Scraped ${properties.length} properties`);
+      return properties;
       
     } catch (error) {
       console.error('OLX scraping error:', error.message);
@@ -421,52 +515,73 @@ class ScraperService {
     try {
       console.log(`[MagicBricks] Scraping for ${city}...`);
       
-      // For Ujjain, use the saved HTML file that we know has 40 properties
-      const fs = require('fs');
-      const path = require('path');
-      const htmlFile = path.join(__dirname, '../../magicbricks-ujjain.html');
+      const searchUrl = `https://www.magicbricks.com/property-for-sale/residential-real-estate?proptype=Multistorey-Apartment,Builder-Floor,Penthouse,Studio-Apartment&cityName=${city}`;
+      console.log(`[MagicBricks] Scraping URL: ${searchUrl}`);
       
-      let html = '';
-      if (city.toLowerCase() === 'ujjain' && fs.existsSync(htmlFile)) {
-        console.log(`[MagicBricks] Using saved HTML file for ${city}`);
-        html = fs.readFileSync(htmlFile, 'utf8');
-      } else {
-        // Try to fetch live data for other cities
-        const searchUrl = `https://www.magicbricks.com/property-for-sale/residential-real-estate?proptype=Multistorey-Apartment,Builder-Floor,Penthouse,Studio-Apartment&cityName=${city}`;
-        html = await fetchStream(searchUrl);
+      const html = await fetchStream(searchUrl);
+      console.log(`[MagicBricks] HTML length: ${html.length}`);
+      
+      const $ = require('cheerio').load(html);
+      
+      // Try multiple selectors for MagicBricks property cards
+      const selectors = [
+        '.mb-srp__card',
+        '[class*="mb-srp"]',
+        '[class*="property-card"]',
+        '[class*="listing-card"]',
+        '[data-testid*="property"]',
+        'article'
+      ];
+      
+      let properties = [];
+      
+      for (const selector of selectors) {
+        const cards = $(selector);
+        console.log(`[MagicBricks] Found ${cards.length} cards with selector: ${selector}`);
+        
+        if (cards.length > 0) {
+          cards.each((index, element) => {
+            if (index >= limit) return false;
+            
+            const $el = $(element);
+            
+            // Extract title
+            const title = $el.find('.mb-srp__card--title, h2, .SerpCard__title, [class*="title"], [class*="heading"]').first().text().trim();
+            
+            // Extract price
+            const price = $el.find('.mb-srp__card__price, .Price, .SerpCard__price, [class*="price"], [class*="amount"]').first().text().trim();
+            
+            // Extract location
+            const location = $el.find('.mb-srp__card__ads--location, .Location, .SerpCard__location, [class*="location"], [class*="address"]').first().text().trim();
+            
+            // Extract configuration
+            const config = $el.find('.mb-srp__card__summary__list, .Config, [class*="config"], [class*="details"]').first().text().trim();
+            
+            // Extract image
+            const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
+            
+            // Extract link
+            const link = $el.find('a').first().attr('href') || '';
+            const fullLink = link.startsWith('http') ? link : `https://www.magicbricks.com${link}`;
+            
+            if (title && price) {
+              properties.push({
+                title,
+                price,
+                location,
+                config,
+                image,
+                link: fullLink
+              });
+            }
+          });
+          break;
+        }
       }
       
-      console.log(`[MagicBricks] HTML length: ${html.length}`);
-      const $ = require('cheerio').load(html);
-      const cardSelector = '.mb-srp__card';
-      const cardCount = $(cardSelector).length;
-      console.log(`[MagicBricks] Cards found: ${cardCount}`);
+      console.log(`[MagicBricks] Scraped ${properties.length} properties`);
+      return properties;
       
-      const properties = [];
-      $(cardSelector).each((index, element) => {
-        if (index >= Math.min(limit, 40)) return false; // Use up to 40 real properties or the requested limit
-        const $el = $(element);
-        const title = $el.find('.mb-srp__card--title, h2, .SerpCard__title').first().text().trim();
-        const price = $el.find('.mb-srp__card__price, .Price, .SerpCard__price').first().text().trim();
-        const location = $el.find('.mb-srp__card__ads--location, .Location, .SerpCard__location').first().text().trim();
-        const config = $el.find('.mb-srp__card__summary__list, .Config').first().text().trim();
-        const image = $el.find('img').first().attr('src') || '';
-        const link = $el.find('a').first().attr('href') || '';
-        
-        if (title && price) {
-          properties.push({
-            title,
-            price,
-            location,
-            config,
-            image,
-            link: link.startsWith('http') ? link : `https://www.magicbricks.com${link}`
-          });
-        }
-      });
-      
-      console.log(`[MagicBricks] Scraped cards: ${properties.length}`);
-      return properties.map((prop, index) => this._formatMagicBricksProperty(prop, city, index));
     } catch (error) {
       console.error('MagicBricks scraping error:', error.message);
       return [];
