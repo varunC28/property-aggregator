@@ -338,90 +338,44 @@ class ScraperService {
       const html = await page.content();
       console.log(`[Housing.com] HTML length: ${html.length}`);
       
-      // Try multiple selectors for property cards
-      const selectors = [
-        '[class*="T_cardV1Style"]',
-        '[class*="property-card"]',
-        '[class*="listing-card"]',
-        '[data-testid*="property"]',
-        'article',
-        '.property-item'
-      ];
-      
-      let cardCount = 0;
-      let cards = [];
-      
-      for (const selector of selectors) {
-        cardCount = await page.evaluate((sel) => {
-          return document.querySelectorAll(sel).length;
-        }, selector);
+      // Use the working selectors from real-scraper-server.js
+      const properties = await page.evaluate((limit) => {
+        const propertyElements = document.querySelectorAll('[data-testid="property-card"], .PropertyCard, .property-card, [class*="T_cardV1Style"]');
+        const results = [];
         
-        if (cardCount > 0) {
-          console.log(`[Housing.com] Found ${cardCount} cards with selector: ${selector}`);
-          cards = await page.evaluate((sel, lim) => {
-            const elements = Array.from(document.querySelectorAll(sel));
-            return elements.slice(0, lim).map(card => {
-              // Try to find title
-              const titleSelectors = ['h1', 'h2', 'h3', '[class*="title"]', '[class*="heading"]'];
-              let title = '';
-              for (const titleSel of titleSelectors) {
-                const titleEl = card.querySelector(titleSel);
-                if (titleEl && titleEl.textContent.trim()) {
-                  title = titleEl.textContent.trim();
-                  break;
-                }
-              }
-              
-              // Try to find price
-              const priceSelectors = ['[class*="price"]', '[class*="amount"]', '.price', '.amount'];
-              let price = '';
-              for (const priceSel of priceSelectors) {
-                const priceEl = card.querySelector(priceSel);
-                if (priceEl && priceEl.textContent.includes('₹')) {
-                  price = priceEl.textContent.trim();
-                  break;
-                }
-              }
-              
-              // Try to find location
-              const locationSelectors = ['[class*="location"]', '[class*="address"]', '.location', '.address'];
-              let location = '';
-              for (const locationSel of locationSelectors) {
-                const locationEl = card.querySelector(locationSel);
-                if (locationEl && locationEl.textContent.trim()) {
-                  location = locationEl.textContent.trim();
-                  break;
-                }
-              }
-              
-              // Get image
-              const imgEl = card.querySelector('img');
-              const image = imgEl?.src || imgEl?.getAttribute('data-src') || '';
-              
-              // Get link
-              const linkEl = card.querySelector('a');
-              const link = linkEl?.href || '';
-              
-              return {
-                title: title || card.textContent.slice(0, 100).trim(),
-                price: price || '',
-                location: location || '',
-                image: image,
-                link: link
-              };
+        for (let i = 0; i < Math.min(propertyElements.length, limit); i++) {
+          const element = propertyElements[i];
+          
+          const title = element.querySelector('h3, .property-title, [data-testid="property-title"], [class*="title"]')?.textContent?.trim() || '';
+          const price = element.querySelector('.price, .property-price, [data-testid="price"], [class*="price"]')?.textContent?.trim() || '';
+          const location = element.querySelector('.location, .property-location, [data-testid="location"], [class*="location"]')?.textContent?.trim() || '';
+          const description = element.querySelector('.description, .property-desc')?.textContent?.trim() || '';
+          const image = element.querySelector('img')?.src || element.querySelector('img')?.getAttribute('data-src') || '';
+          const link = element.querySelector('a')?.href || '';
+          
+          if (title || price) {
+            results.push({
+              title: title || 'Property in ' + location,
+              price,
+              location,
+              description,
+              image,
+              link
             });
-          }, selector, limit);
-          break;
+          }
         }
-      }
+        
+        return results;
+      }, limit);
       
-      let properties = cards;
+
       await page.close();
       if (!Array.isArray(properties)) {
         console.error('[Housing.com] Properties is not an array. HTML snippet:', html.slice(0, 500));
         return [];
       }
       console.log(`[Housing.com] Scraped cards: ${properties.length}`);
+      console.log('[Housing.com] Sample scraped data:', JSON.stringify(properties[0], null, 2));
       return properties.map((prop, index) => this._formatHousingProperty(prop, city, index));
     } catch (error) {
       console.error('Puppeteer scraping error:', error.message);
@@ -447,59 +401,35 @@ class ScraperService {
       
       const $ = require('cheerio').load(html);
       
-      // Try multiple selectors for OLX property cards
-      const selectors = [
-        '[data-cy="l-card"]',
-        '.property-card',
-        '.listing-card',
-        '[class*="property"]',
-        '[class*="listing"]',
-        'article'
-      ];
+      // Use the working selectors from real-scraper-server.js
+      const properties = [];
       
-      let properties = [];
-      
-      for (const selector of selectors) {
-        const cards = $(selector);
-        console.log(`[OLX] Found ${cards.length} cards with selector: ${selector}`);
+      // Look for property listings using working selectors
+      $('[data-aut-id="itemBox"], .EIR5N, ._1gDWt, [data-cy="l-card"]').each((index, element) => {
+        if (index >= limit) return false;
         
-        if (cards.length > 0) {
-          cards.each((index, element) => {
-            if (index >= limit) return false;
-            
-            const $el = $(element);
-            
-            // Extract title
-            const title = $el.find('h6, h5, h4, [class*="title"], [class*="heading"]').first().text().trim();
-            
-            // Extract price
-            const price = $el.find('[class*="price"], [class*="amount"], .price, .amount').first().text().trim();
-            
-            // Extract location
-            const location = $el.find('[class*="location"], [class*="address"], .location, .address').first().text().trim();
-            
-            // Extract image
-            const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
-            
-            // Extract link
-            const link = $el.find('a').first().attr('href') || '';
-            const fullLink = link.startsWith('http') ? link : `https://olx.in${link}`;
-            
-            if (title && price) {
-              properties.push({
-                title,
-                price,
-                location,
-                image,
-                link: fullLink
-              });
-            }
+        const $el = $(element);
+        const title = $el.find('[data-aut-id="itemTitle"], h3, .breakword, [class*="title"]').first().text().trim();
+        const price = $el.find('[data-aut-id="itemPrice"], .notranslate, ._89yzn, [class*="price"]').first().text().trim();
+        const location = $el.find('[data-aut-id="itemLocation"], .zLvFQ, ._1RkZP, [class*="location"]').first().text().trim();
+        const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
+        const link = $el.find('a').first().attr('href') || '';
+        
+        if (title && price) {
+          properties.push({
+            title,
+            price,
+            location,
+            image,
+            link: link.startsWith('http') ? link : `https://www.olx.in${link}`
           });
-          break;
         }
-      }
+      });
       
       console.log(`[OLX] Scraped ${properties.length} properties`);
+      if (properties.length > 0) {
+        console.log('[OLX] Sample scraped data:', JSON.stringify(properties[0], null, 2));
+      }
       return properties;
       
     } catch (error) {
@@ -523,61 +453,32 @@ class ScraperService {
       
       const $ = require('cheerio').load(html);
       
-      // Try multiple selectors for MagicBricks property cards
-      const selectors = [
-        '.mb-srp__card',
-        '[class*="mb-srp"]',
-        '[class*="property-card"]',
-        '[class*="listing-card"]',
-        '[data-testid*="property"]',
-        'article'
-      ];
+      // Use the working selectors from real-scraper-server.js
+      const properties = [];
       
-      let properties = [];
-      
-      for (const selector of selectors) {
-        const cards = $(selector);
-        console.log(`[MagicBricks] Found ${cards.length} cards with selector: ${selector}`);
+      // Look for property cards using working selectors
+      $('.mb-srp__card, .mb-srp__list, .SerpCard').each((index, element) => {
+        if (index >= limit) return false;
         
-        if (cards.length > 0) {
-          cards.each((index, element) => {
-            if (index >= limit) return false;
-            
-            const $el = $(element);
-            
-            // Extract title
-            const title = $el.find('.mb-srp__card--title, h2, .SerpCard__title, [class*="title"], [class*="heading"]').first().text().trim();
-            
-            // Extract price
-            const price = $el.find('.mb-srp__card__price, .Price, .SerpCard__price, [class*="price"], [class*="amount"]').first().text().trim();
-            
-            // Extract location
-            const location = $el.find('.mb-srp__card__ads--location, .Location, .SerpCard__location, [class*="location"], [class*="address"]').first().text().trim();
-            
-            // Extract configuration
-            const config = $el.find('.mb-srp__card__summary__list, .Config, [class*="config"], [class*="details"]').first().text().trim();
-            
-            // Extract image
-            const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
-            
-            // Extract link
-            const link = $el.find('a').first().attr('href') || '';
-            const fullLink = link.startsWith('http') ? link : `https://www.magicbricks.com${link}`;
-            
-            if (title && price) {
-              properties.push({
-                title,
-                price,
-                location,
-                config,
-                image,
-                link: fullLink
-              });
-            }
+        const $el = $(element);
+        const title = $el.find('.mb-srp__card--title, h2, .SerpCard__title').first().text().trim();
+        const price = $el.find('.mb-srp__card__price, .Price, .SerpCard__price').first().text().trim();
+        const location = $el.find('.mb-srp__card__ads--location, .Location, .SerpCard__location').first().text().trim();
+        const config = $el.find('.mb-srp__card__summary__list, .Config').first().text().trim();
+        const image = $el.find('img').first().attr('src') || '';
+        const link = $el.find('a').first().attr('href') || '';
+        
+        if (title || price) {
+          properties.push({
+            title: title || 'MagicBricks Property',
+            price,
+            location,
+            config,
+            image,
+            link: link.startsWith('http') ? link : `https://www.magicbricks.com${link}`
           });
-          break;
         }
-      }
+      });
       
       console.log(`[MagicBricks] Scraped ${properties.length} properties`);
       return properties;
@@ -609,10 +510,10 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Parking', 'Security'],
-      images: prop.image ? [prop.image] : this._getRandomImages('housing', index),
+      images: prop.image ? [prop.image] : [],
       source: {
         name: 'Housing.com',
-        url: prop.link || `https://housing.com/property-${city.toLowerCase()}-${index + 1}`,
+        url: prop.link || `https://housing.com/in/buy/${city.toLowerCase()}`,
         scrapedAt: new Date()
       },
       contact: {
@@ -645,10 +546,10 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Parking'],
-      images: prop.image ? [prop.image] : this._getRandomImages('olx', index),
+      images: prop.image ? [prop.image] : [],
       source: {
         name: 'OLX',
-        url: prop.link || `https://olx.in/property-${city.toLowerCase()}-${index + 1}`,
+        url: prop.link || `https://olx.in/properties-for-sale/${city.toLowerCase()}`,
         scrapedAt: new Date()
       },
       contact: {
@@ -681,10 +582,10 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Gym', 'Pool', 'Security', 'Parking'],
-      images: prop.image ? [prop.image] : this._getRandomImages('magicbricks', index),
+      images: prop.image ? [prop.image] : [],
       source: {
         name: 'MagicBricks',
-        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}&ref=property-${index + 1}`,
+        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`,
         scrapedAt: new Date()
       },
       contact: {
