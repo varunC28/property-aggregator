@@ -17,7 +17,7 @@ const AppConfig = {
   
   // Scraping Configuration
   SCRAPER: {
-    TIMEOUT: 60000, // Increased to 60 seconds
+    TIMEOUT: 120000, // Increased to 2 minutes
     MAX_RETRIES: 3,
     DELAY_BETWEEN_REQUESTS: 1000,
     USER_AGENT: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
