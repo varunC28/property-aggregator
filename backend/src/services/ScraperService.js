@@ -494,7 +494,7 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Parking', 'Security'],
-      images: prop.image ? [prop.image] : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'],
+      images: prop.image ? [prop.image] : this._getRandomImages('housing', index),
       source: {
         name: 'Housing.com',
         url: prop.link || `https://housing.com/property-${city.toLowerCase()}-${index + 1}`,
@@ -530,7 +530,7 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Parking'],
-      images: prop.image ? [prop.image] : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'],
+      images: prop.image ? [prop.image] : this._getRandomImages('olx', index),
       source: {
         name: 'OLX',
         url: prop.link || `https://olx.in/property-${city.toLowerCase()}-${index + 1}`,
@@ -566,7 +566,7 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Gym', 'Pool', 'Security', 'Parking'],
-      images: prop.image ? [prop.image] : ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400'],
+      images: prop.image ? [prop.image] : this._getRandomImages('magicbricks', index),
       source: {
         name: 'MagicBricks',
         url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}&ref=property-${index + 1}`,
@@ -602,7 +602,7 @@ class ScraperService {
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
           description: `Beautiful ${bhk} BHK ${propertyType.toLowerCase()} in ${area} ${city}. Modern amenities, great location, and excellent connectivity.`,
-          image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
+          image: this._getRandomImages('housing', i)[0],
           link: `https://housing.com/in/buy/${city.toLowerCase()}`
         }, city, i));
     }
@@ -630,7 +630,7 @@ class ScraperService {
           title: `${bhk} BHK ${propertyType} for Sale in ${area} ${city} - ${Date.now() + i}`,
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
-          image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
+          image: this._getRandomImages('olx', i)[0],
           link: `https://olx.in/properties-for-sale/${city.toLowerCase()}`
         }, city, i));
     }
@@ -648,7 +648,7 @@ class ScraperService {
         price: `₹${(Math.floor(Math.random() * 80) + 20)} Lakh`,
         location: `Premium ${city}`,
         config: `${Math.floor(Math.random() * 3) + 1} BHK`,
-        image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400',
+        image: this._getRandomImages('magicbricks', i)[0],
         link: `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`
       }, city, i));
     }
@@ -685,6 +685,48 @@ class ScraperService {
     }
     
     return number || Math.floor(Math.random() * 50000000) + 5000000;
+  }
+
+  /**
+   * Get random images for fallback data
+   */
+  _getRandomImages(source, index) {
+    const imagePools = {
+      housing: [
+        'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400',
+        'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400',
+        'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400',
+        'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400',
+        'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400'
+      ],
+      olx: [
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400',
+        'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400',
+        'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400'
+      ],
+      magicbricks: [
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400',
+        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400',
+        'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400',
+        'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=400',
+        'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=400'
+      ]
+    };
+    
+    const pool = imagePools[source] || imagePools.housing;
+    const selectedImages = [];
+    
+    // Select 2-4 random images from the pool
+    const numImages = Math.floor(Math.random() * 3) + 2; // 2-4 images
+    
+    for (let i = 0; i < numImages; i++) {
+      const randomIndex = (index + i) % pool.length;
+      selectedImages.push(pool[randomIndex]);
+    }
+    
+    return selectedImages;
   }
 
   /**
