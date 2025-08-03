@@ -351,9 +351,13 @@ class ScraperService {
       // Wait for content to load
       await page.waitForTimeout(3000);
       
-      // Log HTML length
+      // Log HTML length and sample content
       const html = await page.content();
       console.log(`[Housing.com] HTML length: ${html.length}`);
+      
+      // Log a sample of the HTML to see the structure
+      const sampleHtml = html.slice(0, 2000);
+      console.log(`[Housing.com] Sample HTML: ${sampleHtml}`);
       
       // Use the working selectors from real-scraper-server.js with extensive debugging
       const properties = await page.evaluate((limit) => {
@@ -362,6 +366,13 @@ class ScraperService {
         // Use the exact selectors from the working reference
         const propertyElements = document.querySelectorAll('[data-testid="property-card"], .PropertyCard, .property-card');
         console.log(`[Housing.com] Found ${propertyElements.length} property elements`);
+        
+        // Debug: Check what each selector finds
+        const testSelectors = ['[data-testid="property-card"]', '.PropertyCard', '.property-card'];
+        testSelectors.forEach(selector => {
+          const elements = document.querySelectorAll(selector);
+          console.log(`[Housing.com] Selector "${selector}" found ${elements.length} elements`);
+        });
         
         const results = [];
         
