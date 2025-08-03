@@ -406,6 +406,14 @@ class ScraperService {
       }
       console.log(`[Housing.com] Scraped cards: ${properties.length}`);
       console.log('[Housing.com] Sample scraped data:', JSON.stringify(properties[0], null, 2));
+      
+      // Debug: Check link values before formatting
+      const propertiesWithLinks = properties.filter(p => p.link && p.link.length > 0);
+      console.log(`[Housing.com] Properties with links: ${propertiesWithLinks.length}/${properties.length}`);
+      if (propertiesWithLinks.length > 0) {
+        console.log('[Housing.com] Sample property with link:', JSON.stringify(propertiesWithLinks[0], null, 2));
+      }
+      
       return properties.map((prop, index) => this._formatHousingProperty(prop, city, index));
     } catch (error) {
       console.error('Puppeteer scraping error:', error.message);
@@ -766,6 +774,7 @@ class ScraperService {
    * Format Housing.com property data
    */
   _formatHousingProperty(prop, city, index) {
+    console.log(`[Housing.com] Formatting property ${index}: link = "${prop.link || 'NO LINK'}"`);
     return {
       title: prop.title,
       description: prop.description || `Property available in ${prop.location || city}`,
