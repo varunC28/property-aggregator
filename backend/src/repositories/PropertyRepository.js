@@ -297,6 +297,21 @@ class PropertyRepository {
   }
 
   /**
+   * Check if property exists by title and source name
+   */
+  async existsByTitleAndSource(title, sourceName) {
+    try {
+      const count = await Property.countDocuments({ 
+        title: title,
+        'source.name': sourceName 
+      });
+      return count > 0;
+    } catch (error) {
+      throw new Error(`Failed to check property existence: ${error.message}`);
+    }
+  }
+
+  /**
    * Increment property views
    */
   async incrementViews(id) {

@@ -297,13 +297,13 @@ class PropertyService {
 
       for (const propertyData of propertiesData) {
         try {
-          // Check for duplicates
-          const exists = await PropertyRepository.existsBySourceUrl(propertyData.source?.url);
-          console.log(`Checking URL: ${propertyData.source?.url}, exists: ${exists}`);
+          // Check for duplicates by title and source name (more reliable than URL)
+          const exists = await PropertyRepository.existsByTitleAndSource(propertyData.title, propertyData.source?.name);
+          console.log(`Checking title: ${propertyData.title}, source: ${propertyData.source?.name}, exists: ${exists}`);
           if (exists) {
             results.duplicates.push({
               data: propertyData,
-              reason: 'Property with this source URL already exists'
+              reason: 'Property with this title and source already exists'
             });
             continue;
           }
