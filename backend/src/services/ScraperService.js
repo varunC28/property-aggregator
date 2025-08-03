@@ -333,12 +333,11 @@ class ScraperService {
       const browser = await this.initBrowser();
       const page = await browser.newPage();
       await page.setUserAgent(this.scraperConfig.USER_AGENT);
-              const searchUrls = [
-          `https://housing.com/in/buy/searches/P36xt`,  // Mumbai properties (working)
-          `https://housing.com/in/buy/${city.toLowerCase()}`,
-          `https://housing.com/in/buy/searches/${city.toLowerCase()}`,
-          `https://housing.com/in/buy/searches/${city.toLowerCase()}-properties`
-        ];
+                  const searchUrls = [
+      `https://housing.com/in/buy/searches/P36xt`,  // Mumbai properties (working)
+      `https://housing.com/in/buy/searches/P36xt?city=${city.toLowerCase()}`,  // Mumbai with city param
+      `https://housing.com/in/buy/${city.toLowerCase()}`
+    ];
       const tryUrl = async (url) => {
         console.log(`Trying Housing.com URL: ${url}`);
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: this.scraperConfig.TIMEOUT });
@@ -360,111 +359,25 @@ class ScraperService {
       const properties = await page.evaluate((limit) => {
         console.log('[Housing.com] Starting property extraction...');
         
-        // Try multiple selector combinations
-        const selectorCombinations = [
-          '[data-testid="property-card"]',
-          '.PropertyCard',
-          '.property-card',
-          '[class*="T_cardV1Style"]',
-          '[class*="property"]',
-          '[class*="card"]',
-          'article',
-          '.listing',
-          '[class*="listing"]'
-        ];
-        
-        let propertyElements = [];
-        let usedSelector = '';
-        
-        for (const selector of selectorCombinations) {
-          const elements = document.querySelectorAll(selector);
-          console.log(`[Housing.com] Selector "${selector}" found ${elements.length} elements`);
-          if (elements.length > 0) {
-            propertyElements = elements;
-            usedSelector = selector;
-            break;
-          }
-        }
-        
-        console.log(`[Housing.com] Using selector: ${usedSelector}, found ${propertyElements.length} elements`);
+        // Use the exact selectors from the working reference
+        const propertyElements = document.querySelectorAll('[data-testid="property-card"], .PropertyCard, .property-card');
+        console.log(`[Housing.com] Found ${propertyElements.length} property elements`);
         
         const results = [];
         
         for (let i = 0; i < Math.min(propertyElements.length, limit); i++) {
           const element = propertyElements[i];
           
-          // Try multiple title selectors
-          const titleSelectors = ['h1', 'h2', 'h3', 'h4', '.property-title', '[data-testid="property-title"]', '[class*="title"]', '[class*="heading"]'];
-          let title = '';
-          for (const sel of titleSelectors) {
-            const titleEl = element.querySelector(sel);
-            if (titleEl && titleEl.textContent.trim()) {
-              title = titleEl.textContent.trim();
-              break;
-            }
-          }
-          
-          // Try multiple price selectors
-          const priceSelectors = ['.price', '.property-price', '[data-testid="price"]', '[class*="price"]', '[class*="amount"]'];
-          let price = '';
-          for (const sel of priceSelectors) {
-            const priceEl = element.querySelector(sel);
-            if (priceEl && priceEl.textContent.trim()) {
-              price = priceEl.textContent.trim();
-              break;
-            }
-          }
-          
-          // Try multiple location selectors
-          const locationSelectors = ['.location', '.property-location', '[data-testid="location"]', '[class*="location"]', '[class*="address"]'];
-          let location = '';
-          for (const sel of locationSelectors) {
-            const locationEl = element.querySelector(sel);
-            if (locationEl && locationEl.textContent.trim()) {
-              location = locationEl.textContent.trim();
-              break;
-            }
-          }
+          // Use the exact selectors from the working reference
+          const title = element.querySelector('h3, .property-title, [data-testid="property-title"]')?.textContent?.trim() || '';
+          const price = element.querySelector('.price, .property-price, [data-testid="price"]')?.textContent?.trim() || '';
+          const location = element.querySelector('.location, .property-location, [data-testid="location"]')?.textContent?.trim() || '';
           
           const description = element.querySelector('.description, .property-desc')?.textContent?.trim() || '';
           const image = element.querySelector('img')?.src || element.querySelector('img')?.getAttribute('data-src') || '';
           
-          // Enhanced link extraction - try multiple approaches
-          let link = '';
-          
-          // Try 1: Direct href from property element
-          const directLink = element.querySelector('a')?.href;
-          if (directLink && directLink !== window.location.href && !directLink.includes('javascript:')) {
-            link = directLink;
-          }
-          
-          // Try 2: Look for links in parent/child elements
-          if (!link) {
-            const parentLink = element.closest('a')?.href;
-            if (parentLink && parentLink !== window.location.href && !parentLink.includes('javascript:')) {
-              link = parentLink;
-            }
-          }
-          
-          // Try 3: Look for data attributes that might contain URLs
-          if (!link) {
-            const dataLink = element.getAttribute('data-href') || 
-                           element.getAttribute('data-url') || 
-                           element.getAttribute('data-link');
-            if (dataLink) {
-              link = dataLink.startsWith('http') ? dataLink : `https://housing.com${dataLink}`;
-            }
-          }
-          
-          // Try 4: Look for onclick handlers with URLs
-          if (!link) {
-            const onclick = element.getAttribute('onclick') || '';
-            const urlMatch = onclick.match(/(?:window\.open|location\.href|goto)\(['"]([^'"]+)['"]\)/);
-            if (urlMatch) {
-              link = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://housing.com${urlMatch[1]}`;
-            }
-          }
-          
+          // Use the exact link extraction from the working reference
+          const link = element.querySelector('a')?.href || '';
           console.log(`[Housing.com] Property ${i + 1} link extraction: ${link || 'NO LINK FOUND'}`);
           
           // Be more lenient - accept properties with any content
