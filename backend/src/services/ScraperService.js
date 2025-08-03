@@ -410,7 +410,44 @@ class ScraperService {
           
           const description = element.querySelector('.description, .property-desc')?.textContent?.trim() || '';
           const image = element.querySelector('img')?.src || element.querySelector('img')?.getAttribute('data-src') || '';
-          const link = element.querySelector('a')?.href || '';
+          
+          // Enhanced link extraction - try multiple approaches
+          let link = '';
+          
+          // Try 1: Direct href from property element
+          const directLink = element.querySelector('a')?.href;
+          if (directLink && directLink !== window.location.href && !directLink.includes('javascript:')) {
+            link = directLink;
+          }
+          
+          // Try 2: Look for links in parent/child elements
+          if (!link) {
+            const parentLink = element.closest('a')?.href;
+            if (parentLink && parentLink !== window.location.href && !parentLink.includes('javascript:')) {
+              link = parentLink;
+            }
+          }
+          
+          // Try 3: Look for data attributes that might contain URLs
+          if (!link) {
+            const dataLink = element.getAttribute('data-href') || 
+                           element.getAttribute('data-url') || 
+                           element.getAttribute('data-link');
+            if (dataLink) {
+              link = dataLink.startsWith('http') ? dataLink : `https://housing.com${dataLink}`;
+            }
+          }
+          
+          // Try 4: Look for onclick handlers with URLs
+          if (!link) {
+            const onclick = element.getAttribute('onclick') || '';
+            const urlMatch = onclick.match(/(?:window\.open|location\.href|goto)\(['"]([^'"]+)['"]\)/);
+            if (urlMatch) {
+              link = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://housing.com${urlMatch[1]}`;
+            }
+          }
+          
+          console.log(`[Housing.com] Property ${i + 1} link extraction: ${link || 'NO LINK FOUND'}`);
           
           // Be more lenient - accept properties with any content
           if (title || price || location || element.textContent.trim().length > 50) {
@@ -529,7 +566,38 @@ class ScraperService {
             }
             
             const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
-            const link = $el.find('a').first().attr('href') || '';
+            
+            // Enhanced link extraction for OLX
+            let link = '';
+            
+            // Try 1: Direct href
+            const directLink = $el.find('a').first().attr('href');
+            if (directLink && !directLink.includes('javascript:')) {
+              link = directLink;
+            }
+            
+            // Try 2: Data attributes
+            if (!link) {
+              const dataLink = $el.attr('data-href') || $el.attr('data-url') || $el.attr('data-link');
+              if (dataLink) {
+                link = dataLink;
+              }
+            }
+            
+            // Try 3: Look in parent elements
+            if (!link) {
+              const parentLink = $el.closest('a').attr('href');
+              if (parentLink && !parentLink.includes('javascript:')) {
+                link = parentLink;
+              }
+            }
+            
+            // Make sure link is absolute
+            if (link && !link.startsWith('http')) {
+              link = `https://www.olx.in${link}`;
+            }
+            
+            console.log(`[OLX] Property ${properties.length + 1} link extraction: ${link || 'NO LINK FOUND'}`);
             
             // Be more lenient - accept properties with any content
             if (title || price || location || $el.text().trim().length > 50) {
@@ -669,7 +737,43 @@ class ScraperService {
             
             const config = $el.find('.mb-srp__card__summary__list, .Config').first().text().trim();
             const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
-            const link = $el.find('a').first().attr('href') || '';
+            
+            // Enhanced link extraction for MagicBricks
+            let link = '';
+            
+            // Try 1: Direct href
+            const directLink = $el.find('a').first().attr('href');
+            if (directLink && !directLink.includes('javascript:')) {
+              link = directLink;
+            }
+            
+            // Try 2: Data attributes
+            if (!link) {
+              const dataLink = $el.attr('data-href') || $el.attr('data-url') || $el.attr('data-link') || $el.attr('data-propid');
+              if (dataLink) {
+                // If it's a property ID, construct the URL
+                if (dataLink.match(/^\d+$/)) {
+                  link = `https://www.magicbricks.com/propertyDetails/${dataLink}`;
+                } else {
+                  link = dataLink;
+                }
+              }
+            }
+            
+            // Try 3: Look in parent elements
+            if (!link) {
+              const parentLink = $el.closest('a').attr('href');
+              if (parentLink && !parentLink.includes('javascript:')) {
+                link = parentLink;
+              }
+            }
+            
+            // Make sure link is absolute
+            if (link && !link.startsWith('http')) {
+              link = `https://www.magicbricks.com${link}`;
+            }
+            
+            console.log(`[MagicBricks] Property ${properties.length + 1} link extraction: ${link || 'NO LINK FOUND'}`);
             
             // Be more lenient - accept properties with any content
             if (title || price || location || $el.text().trim().length > 50) {
@@ -751,7 +855,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : [],
       source: {
         name: 'Housing.com',
-        url: prop.link || `https://housing.com/in/buy/${city.toLowerCase()}`,
+        url: prop.link || `https://housing.com/in/buy/${city.toLowerCase()}?search=properties`, // Only use fallback if absolutely no link found
         scrapedAt: new Date()
       },
       contact: {
@@ -787,7 +891,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : [],
       source: {
         name: 'OLX',
-        url: prop.link || `https://olx.in/properties-for-sale/${city.toLowerCase()}`,
+        url: prop.link || `https://www.olx.in/items/q-property-${city.toLowerCase()}?search=properties`, // Only use fallback if absolutely no link found
         scrapedAt: new Date()
       },
       contact: {
@@ -823,7 +927,7 @@ class ScraperService {
       images: prop.image ? [prop.image] : [],
       source: {
         name: 'MagicBricks',
-        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`,
+        url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}&search=properties`, // Only use fallback if absolutely no link found
         scrapedAt: new Date()
       },
       contact: {
