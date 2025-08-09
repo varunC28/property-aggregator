@@ -385,10 +385,47 @@ class ScraperService {
           const location = element.querySelector('.location, .property-location, [data-testid="location"]')?.textContent?.trim() || '';
           
           const description = element.querySelector('.description, .property-desc')?.textContent?.trim() || '';
-          const image = element.querySelector('img')?.src || element.querySelector('img')?.getAttribute('data-src') || '';
-          
-          // Use the exact link extraction from the working reference
-          const link = element.querySelector('a')?.href || '';
+
+          // Collect multiple image URLs from the card
+          const extractImgUrl = (imgEl) => {
+            if (!imgEl) return '';
+            const direct = imgEl.getAttribute('src') || imgEl.getAttribute('data-src') || imgEl.getAttribute('data-original');
+            if (direct) {
+              if (direct.startsWith('//')) return `https:${direct}`;
+              if (direct.startsWith('/')) return `${location.origin}${direct}`;
+              return direct;
+            }
+            const srcset = imgEl.getAttribute('srcset');
+            if (srcset) {
+              const last = srcset.split(',').pop().trim().split(' ')[0];
+              if (last.startsWith('//')) return `https:${last}`;
+              if (last.startsWith('/')) return `${location.origin}${last}`;
+              return last;
+            }
+            return '';
+          };
+          const images = Array.from(element.querySelectorAll('img'))
+            .map(extractImgUrl)
+            .filter(Boolean);
+
+          // Enhanced link extraction
+          let link = '';
+          const directAnchor = element.querySelector('a');
+          if (directAnchor && directAnchor.href && !directAnchor.href.includes('javascript:')) {
+            link = directAnchor.href;
+          }
+          if (!link) {
+            const ancestorAnchor = element.closest('a');
+            if (ancestorAnchor && ancestorAnchor.href && !ancestorAnchor.href.includes('javascript:')) {
+              link = ancestorAnchor.href;
+            }
+          }
+          if (!link) {
+            link = element.getAttribute('data-href') || element.getAttribute('data-url') || element.getAttribute('data-link') || '';
+          }
+          if (link && !link.startsWith('http')) {
+            link = `https://housing.com${link}`;
+          }
           console.log(`[Housing.com] Property ${i + 1} link extraction: ${link || 'NO LINK FOUND'}`);
           
           // Be more lenient - accept properties with any content
@@ -398,7 +435,7 @@ class ScraperService {
               price: price || 'Price on request',
               location: location || 'Location available',
               description,
-              image,
+              images,
               link
             });
             console.log(`[Housing.com] Extracted property ${i + 1}: ${title || 'No title'}`);
@@ -515,7 +552,27 @@ class ScraperService {
               }
             }
             
-            const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
+            // Collect multiple image URLs
+            const toAbs = (url) => {
+              if (!url) return '';
+              if (url.startsWith('http')) return url;
+              if (url.startsWith('//')) return `https:${url}`;
+              return url;
+            };
+            const seenImgs = new Set();
+            const images = [];
+            $el.find('img').each((i, img) => {
+              let src = $(img).attr('src') || $(img).attr('data-src') || $(img).attr('data-original') || '';
+              if (!src) {
+                const srcset = $(img).attr('srcset');
+                if (srcset) {
+                  const last = srcset.split(',').pop().trim().split(' ')[0];
+                  src = last;
+                }
+              }
+              src = toAbs(src);
+              if (src && !seenImgs.has(src)) { seenImgs.add(src); images.push(src); }
+            });
             
             // Enhanced link extraction for OLX
             let link = '';
@@ -555,7 +612,7 @@ class ScraperService {
                 title: title || `Property ${index + 1}`,
                 price: price || 'Price on request',
                 location: location || 'Location available',
-                image,
+                images,
                 link: link.startsWith('http') ? link : `https://www.olx.in${link}`
               });
               console.log(`[OLX] Extracted property ${properties.length}: ${title || 'No title'}`);
@@ -585,7 +642,22 @@ class ScraperService {
               title: `Property ${properties.length + 1}`,
               price: 'Price on request',
               location: 'Location available',
-              image: $el.find('img').first().attr('src') || '',
+              images: (function() {
+                const urls = [];
+                const seen = new Set();
+                $el.find('img').each((i, img) => {
+                  let src = $(img).attr('src') || $(img).attr('data-src') || $(img).attr('data-original') || '';
+                  if (!src) {
+                    const ss = $(img).attr('srcset');
+                    if (ss) {
+                      const last = ss.split(',').pop().trim().split(' ')[0];
+                      src = last;
+                    }
+                  }
+                  if (src && !seen.has(src)) { seen.add(src); urls.push(src); }
+                });
+                return urls;
+              })(),
               link: $el.find('a').first().attr('href') || ''
             });
             
@@ -686,7 +758,27 @@ class ScraperService {
             }
             
             const config = $el.find('.mb-srp__card__summary__list, .Config').first().text().trim();
-            const image = $el.find('img').first().attr('src') || $el.find('img').first().attr('data-src') || '';
+            // Collect multiple image URLs for MagicBricks
+            const toAbsMb = (url) => {
+              if (!url) return '';
+              if (url.startsWith('http')) return url;
+              if (url.startsWith('//')) return `https:${url}`;
+              return url;
+            };
+            const seenMagic = new Set();
+            const images = [];
+            $el.find('img').each((i, img) => {
+              let src = $(img).attr('src') || $(img).attr('data-src') || $(img).attr('data-original') || '';
+              if (!src) {
+                const srcset = $(img).attr('srcset');
+                if (srcset) {
+                  const last = srcset.split(',').pop().trim().split(' ')[0];
+                  src = last;
+                }
+              }
+              src = toAbsMb(src);
+              if (src && !seenMagic.has(src)) { seenMagic.add(src); images.push(src); }
+            });
             
             // Enhanced link extraction for MagicBricks
             let link = '';
@@ -732,7 +824,7 @@ class ScraperService {
                 price: price || 'Price on request',
                 location: location || 'Premium location',
                 config,
-                image,
+                images,
                 link: link.startsWith('http') ? link : `https://www.magicbricks.com${link}`
               });
               console.log(`[MagicBricks] Extracted property ${properties.length}: ${title || 'No title'}`);
@@ -763,7 +855,22 @@ class ScraperService {
               price: 'Price on request',
               location: 'Premium location',
               config: '',
-              image: $el.find('img').first().attr('src') || '',
+              images: (function() {
+                const urls = [];
+                const seen = new Set();
+                $el.find('img').each((i, img) => {
+                  let src = $(img).attr('src') || $(img).attr('data-src') || $(img).attr('data-original') || '';
+                  if (!src) {
+                    const ss = $(img).attr('srcset');
+                    if (ss) {
+                      const last = ss.split(',').pop().trim().split(' ')[0];
+                      src = last;
+                    }
+                  }
+                  if (src && !seen.has(src)) { seen.add(src); urls.push(src); }
+                });
+                return urls;
+              })(),
               link: $el.find('a').first().attr('href') || ''
             });
             
@@ -803,7 +910,9 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Parking', 'Security'],
-      images: prop.image ? [prop.image] : [],
+      images: (Array.isArray(prop.images) && prop.images.length > 0)
+        ? prop.images
+        : (prop.image ? [prop.image] : []),
       source: {
         name: 'Housing.com',
         url: prop.link || `https://housing.com/in/buy/searches/P36xt`, // Use working Mumbai URL as fallback
@@ -839,7 +948,9 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Parking'],
-      images: prop.image ? [prop.image] : [],
+      images: (Array.isArray(prop.images) && prop.images.length > 0)
+        ? prop.images
+        : (prop.image ? [prop.image] : []),
       source: {
         name: 'OLX',
         url: prop.link || `https://www.olx.in/items/q-property-${city.toLowerCase()}`, // Use simple search URL as fallback
@@ -875,7 +986,9 @@ class ScraperService {
         unit: 'sqft'
       },
       amenities: ['Gym', 'Pool', 'Security', 'Parking'],
-      images: prop.image ? [prop.image] : [],
+      images: (Array.isArray(prop.images) && prop.images.length > 0)
+        ? prop.images
+        : (prop.image ? [prop.image] : []),
       source: {
         name: 'MagicBricks',
         url: prop.link || `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`, // Use simple search URL as fallback
@@ -911,7 +1024,7 @@ class ScraperService {
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
           description: `Beautiful ${bhk} BHK ${propertyType.toLowerCase()} in ${area} ${city}. Modern amenities, great location, and excellent connectivity.`,
-          image: this._getRandomImages('housing', i)[0],
+          images: [],
           link: `https://housing.com/in/buy/${city.toLowerCase()}`
         }, city, i));
     }
@@ -939,7 +1052,7 @@ class ScraperService {
           title: `${bhk} BHK ${propertyType} for Sale in ${area} ${city} - ${Date.now() + i}`,
           price: `₹${priceRange} Lakh`,
           location: `${area} ${city}`,
-          image: this._getRandomImages('olx', i)[0],
+          images: [],
           link: `https://www.olx.in/items/q-property-${city.toLowerCase()}`
         }, city, i));
     }
@@ -957,7 +1070,7 @@ class ScraperService {
         price: `₹${(Math.floor(Math.random() * 80) + 20)} Lakh`,
         location: `Premium ${city}`,
         config: `${Math.floor(Math.random() * 3) + 1} BHK`,
-        image: this._getRandomImages('magicbricks', i)[0],
+        images: [],
         link: `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`
       }, city, i));
     }
