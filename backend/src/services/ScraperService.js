@@ -392,14 +392,14 @@ class ScraperService {
             const direct = imgEl.getAttribute('src') || imgEl.getAttribute('data-src') || imgEl.getAttribute('data-original');
             if (direct) {
               if (direct.startsWith('//')) return `https:${direct}`;
-              if (direct.startsWith('/')) return `${location.origin}${direct}`;
+              if (direct.startsWith('/')) return `https://housing.com${direct}`;
               return direct;
             }
             const srcset = imgEl.getAttribute('srcset');
             if (srcset) {
               const last = srcset.split(',').pop().trim().split(' ')[0];
               if (last.startsWith('//')) return `https:${last}`;
-              if (last.startsWith('/')) return `${location.origin}${last}`;
+              if (last.startsWith('/')) return `https://housing.com${last}`;
               return last;
             }
             return '';
@@ -557,7 +557,8 @@ class ScraperService {
               if (!url) return '';
               if (url.startsWith('http')) return url;
               if (url.startsWith('//')) return `https:${url}`;
-              return url;
+              if (url.startsWith('/')) return `https://www.olx.in${url}`;
+              return `https://www.olx.in/${url.replace(/^\.?\/?/, '')}`;
             };
             const seenImgs = new Set();
             const images = [];
@@ -763,7 +764,8 @@ class ScraperService {
               if (!url) return '';
               if (url.startsWith('http')) return url;
               if (url.startsWith('//')) return `https:${url}`;
-              return url;
+              if (url.startsWith('/')) return `https://www.magicbricks.com${url}`;
+              return `https://www.magicbricks.com/${url.replace(/^\.?\/?/, '')}`;
             };
             const seenMagic = new Set();
             const images = [];
