@@ -35,7 +35,7 @@ class ScraperService {
     await page.setRequestInterception(true);
     page.on('request', req => {
       const type = req.resourceType();
-      if (['image','stylesheet','font','media','other'].includes(type)) return req.abort();
+      if (['image','media'].includes(type)) return req.abort();
       req.continue();
     });
   }
