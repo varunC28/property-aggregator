@@ -31,6 +31,10 @@ const AppConfig = {
   
   // AI Configuration
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  AI: {
+    ENABLED: (process.env.AI_PROCESSING_ENABLED || 'false').toLowerCase() === 'true',
+    CONFIDENCE_THRESHOLD: parseFloat(process.env.AI_CONFIDENCE_THRESHOLD || '0.5')
+  },
   
   // Validation
   validate() {

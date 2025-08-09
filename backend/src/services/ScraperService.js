@@ -178,7 +178,7 @@ class ScraperService {
               email: aiProcessed.contact?.email || rawProperty.contact?.email || '',
               agent: aiProcessed.contact?.agent || rawProperty.contact?.agent || ''
             },
-            // Preserve original source information
+            // Preserve original source information strictly (do not let AI change url/name)
             source: rawProperty.source,
             // Add AI processing metadata
             aiProcessed: true,
@@ -240,8 +240,11 @@ class ScraperService {
         }
       });
 
-      console.log(`Saving ${allProperties.length} scraped properties to database`);
-      const saveResult = await PropertyService.bulkCreateProperties(allProperties);
+      // Optionally run AI processing, but preserve original links strictly
+      const AppConfig = require('../config/app');
+      const propertiesToSave = AppConfig.AI.ENABLED ? await this.processWithAI(allProperties) : allProperties;
+      console.log(`Saving ${propertiesToSave.length} scraped properties to database`);
+      const saveResult = await PropertyService.bulkCreateProperties(propertiesToSave);
       console.log(`Save result:`, saveResult);
 
       return PropertyDto.formatScraperResponse({
@@ -285,19 +288,23 @@ class ScraperService {
       }
 
       console.log(`[Housing.com] Scraped: ${properties.length}`);
+      const AppConfig = require('../config/app');
+      const output = AppConfig.AI.ENABLED ? await this.processWithAI(properties) : properties;
       return {
         success: true,
         message: `Housing.com scraping completed for ${city}`,
-        properties,
+        properties: output,
         source: 'Housing.com'
       };
     } catch (error) {
       console.error('Housing.com scraping error:', error);
       const properties = this._generateHousingFallbackData(city, limit);
+      const AppConfig = require('../config/app');
+      const output = AppConfig.AI.ENABLED ? await this.processWithAI(properties) : properties;
       return {
         success: true,
         message: `Housing.com scraping completed for ${city} (fallback data)` ,
-        properties,
+        properties: output,
         source: 'Housing.com'
       };
     }
@@ -326,19 +333,23 @@ class ScraperService {
       }
 
       console.log(`[OLX] Scraped: ${properties.length}`);
+      const AppConfig = require('../config/app');
+      const output = AppConfig.AI.ENABLED ? await this.processWithAI(properties) : properties;
       return {
         success: true,
         message: `OLX scraping completed for ${city}`,
-        properties,
+        properties: output,
         source: 'OLX'
       };
     } catch (error) {
       console.error('OLX scraping error:', error);
       const properties = this._generateOLXFallbackData(city, limit);
+      const AppConfig = require('../config/app');
+      const output = AppConfig.AI.ENABLED ? await this.processWithAI(properties) : properties;
       return {
         success: true,
         message: `OLX scraping completed for ${city} (fallback data)` ,
-        properties,
+        properties: output,
         source: 'OLX'
       };
     }
@@ -367,19 +378,23 @@ class ScraperService {
       }
 
       console.log(`[MagicBricks] Scraped: ${properties.length}`);
+      const AppConfig = require('../config/app');
+      const output = AppConfig.AI.ENABLED ? await this.processWithAI(properties) : properties;
       return {
         success: true,
         message: `MagicBricks scraping completed for ${city}`,
-        properties,
+        properties: output,
         source: 'MagicBricks'
       };
     } catch (error) {
       console.error('MagicBricks scraping error:', error);
       const properties = this._generateMagicBricksFallbackData(city, limit);
+      const AppConfig = require('../config/app');
+      const output = AppConfig.AI.ENABLED ? await this.processWithAI(properties) : properties;
       return {
         success: true,
         message: `MagicBricks scraping completed for ${city} (fallback data)` ,
-        properties,
+        properties: output,
         source: 'MagicBricks'
       };
     }
