@@ -112,7 +112,9 @@ class ScraperService {
               unit: aiProcessed.area?.unit || rawProperty.area?.unit || 'sqft'
             },
             amenities: aiProcessed.amenities || rawProperty.amenities || [],
-            images: aiProcessed.images || rawProperty.images || [],
+            images: (Array.isArray(aiProcessed.images) && aiProcessed.images.length > 0)
+              ? aiProcessed.images
+              : (Array.isArray(rawProperty.images) ? rawProperty.images : (rawProperty.image ? [rawProperty.image] : [])),
             contact: {
               phone: aiProcessed.contact?.phone || rawProperty.contact?.phone || '',
               email: aiProcessed.contact?.email || rawProperty.contact?.email || '',
