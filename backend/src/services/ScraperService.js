@@ -374,6 +374,15 @@ class ScraperService {
           console.log(`[Housing.com] Selector "${selector}" found ${elements.length} elements`);
         });
         
+        const toAbs = (u) => {
+          try {
+            if (!u) return '';
+            if (u.startsWith('http')) return u;
+            if (u.startsWith('//')) return `https:${u}`;
+            return new URL(u, location.origin).href;
+          } catch { return u || ''; }
+        };
+
         const results = [];
         
         for (let i = 0; i < Math.min(propertyElements.length, limit); i++) {
@@ -404,9 +413,35 @@ class ScraperService {
             }
             return '';
           };
-          const images = Array.from(element.querySelectorAll('img'))
+          const imagesSet = new Set();
+          Array.from(element.querySelectorAll('img'))
             .map(extractImgUrl)
-            .filter(Boolean);
+            .filter(Boolean)
+            .forEach(u => imagesSet.add(toAbs(u)));
+
+          // Also capture background-image URLs from inline styles and computed styles
+          const candidates = element.querySelectorAll('*');
+          const urlRegex = /url\(("|')?(.*?)\1\)/gi;
+          candidates.forEach((node) => {
+            const styleAttr = node.getAttribute && node.getAttribute('style');
+            if (styleAttr && /background/i.test(styleAttr)) {
+              let match;
+              while ((match = urlRegex.exec(styleAttr)) !== null) {
+                const raw = match[2];
+                if (raw) imagesSet.add(toAbs(raw));
+              }
+            }
+            const bg = getComputedStyle(node).backgroundImage;
+            if (bg && bg.includes('url(')) {
+              let m;
+              while ((m = urlRegex.exec(bg)) !== null) {
+                const raw = m[2];
+                if (raw) imagesSet.add(toAbs(raw));
+              }
+            }
+          });
+
+          const images = Array.from(imagesSet);
 
           // Enhanced link extraction
           let link = '';
