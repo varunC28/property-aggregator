@@ -252,8 +252,8 @@ class ScraperService {
     try {
       console.log(`🛒 Scraping OLX for ${city}...`);
 
-      // Try real scraping first
-      let properties = await this._withRetry(() => this._scrapeOLXWithCheerio(city, limit), 3, 8000);
+      // Try real scraping first (use Puppeteer; OLX is heavily client-rendered)
+      let properties = await this._withRetry(() => this._scrapeOLXWithPuppeteer(city, limit), 3, 8000);
       
       console.log(`[OLX] Real scraping returned ${properties.length} properties`);
       if (properties.length > 0) {
@@ -293,8 +293,8 @@ class ScraperService {
     try {
       console.log(`🏢 Scraping MagicBricks for ${city}...`);
 
-      // Try real scraping first
-      let properties = await this._withRetry(() => this._scrapeMagicBricksWithCheerio(city, limit), 3, 8000);
+      // Try real scraping first (use Puppeteer; MB uses dynamic content)
+      let properties = await this._withRetry(() => this._scrapeMagicBricksWithPuppeteer(city, limit), 3, 8000);
       
       console.log(`[MagicBricks] Real scraping returned ${properties.length} properties`);
       if (properties.length > 0) {
@@ -512,7 +512,7 @@ class ScraperService {
   /**
    * Real OLX scraping with Cheerio
    */
-  async _scrapeOLXWithCheerio(city, limit) {
+  async _scrapeOLXWithPuppeteer(city, limit) {
     try {
       console.log(`[OLX] Attempting to scrape for ${city}...`);
       
@@ -719,7 +719,7 @@ class ScraperService {
   /**
    * Real MagicBricks scraping with Cheerio
    */
-  async _scrapeMagicBricksWithCheerio(city, limit) {
+  async _scrapeMagicBricksWithPuppeteer(city, limit) {
     try {
       console.log(`[MagicBricks] Scraping for ${city}...`);
       
