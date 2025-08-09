@@ -32,12 +32,70 @@ class ScraperService {
    */
   async _configurePage(page) {
     await page.setUserAgent(this.scraperConfig.USER_AGENT);
+    await page.setExtraHTTPHeaders({ 'Accept-Language': 'en-US,en;q=0.9' });
+    await page.setViewport({ width: 1366, height: 900, deviceScaleFactor: 1 });
     await page.setRequestInterception(true);
     page.on('request', req => {
       const type = req.resourceType();
       if (['image','media'].includes(type)) return req.abort();
       req.continue();
     });
+  }
+
+  /**
+   * Attempt to accept cookie/consent banners
+   */
+  async _tryAcceptConsent(page) {
+    try {
+      const selectors = [
+        'button[aria-label*="accept" i]',
+        'button:has-text("Accept")',
+        'button:has-text("I agree")',
+        'button:has-text("Got it")',
+        '#onetrust-accept-btn-handler',
+        'button[aria-label*="close" i]'
+      ];
+      for (const sel of selectors) {
+        const btn = await page.$(sel).catch(() => null);
+        if (btn) { await btn.click().catch(() => {}); await page.waitForTimeout(200); }
+      }
+      // Fallback: click any visible button containing accept-like text
+      await page.evaluate(() => {
+        const texts = ['accept','agree','got it','allow'];
+        const buttons = Array.from(document.querySelectorAll('button'));
+        for (const b of buttons) {
+          const t = (b.textContent || '').toLowerCase();
+          if (texts.some(x => t.includes(x))) { b.click(); }
+        }
+      });
+    } catch {}
+  }
+
+  /**
+   * Auto-scroll to load lazy content/virtualized lists
+   */
+  async _autoScroll(page, maxSteps = 20, stepPx = 1200, delayMs = 400) {
+    try {
+      let lastHeight = await page.evaluate('document.body.scrollHeight');
+      for (let i = 0; i < maxSteps; i++) {
+        await page.evaluate(h => window.scrollBy(0, h), stepPx);
+        await page.waitForTimeout(delayMs);
+        const newHeight = await page.evaluate('document.body.scrollHeight');
+        if (newHeight === lastHeight) break;
+        lastHeight = newHeight;
+      }
+      await page.evaluate('window.scrollTo(0, 0)');
+    } catch {}
+  }
+
+  /**
+   * Prepare page: navigate, handle consent, wait and scroll
+   */
+  async _preparePage(page, url) {
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: this.scraperConfig.TIMEOUT });
+    await this._tryAcceptConsent(page);
+    await page.waitForTimeout(1500);
+    await this._autoScroll(page, 24, 1400, 350);
   }
 
   /**
@@ -334,7 +392,7 @@ class ScraperService {
     try {
       const browser = await this.initBrowser();
       const page = await browser.newPage();
-      await page.setUserAgent(this.scraperConfig.USER_AGENT);
+      await this._configurePage(page);
                   const searchUrls = [
       `https://housing.com/in/buy/searches/P36xt`,  // Mumbai properties (working)
       `https://housing.com/in/buy/searches/P36xt?city=${city.toLowerCase()}`,  // Mumbai with city param
@@ -342,7 +400,7 @@ class ScraperService {
     ];
       const tryUrl = async (url) => {
         console.log(`Trying Housing.com URL: ${url}`);
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: this.scraperConfig.TIMEOUT });
+        await this._preparePage(page, url);
       };
       try {
         await Promise.any(searchUrls.map(tryUrl));
@@ -515,13 +573,11 @@ class ScraperService {
   async _scrapeOLXWithPuppeteer(city, limit) {
     try {
       console.log(`[OLX] Attempting to scrape for ${city}...`);
-      
+      const page = await this._newPage();
       const searchUrl = `https://www.olx.in/items/q-property-${city.toLowerCase()}`;
-      console.log(`[OLX] Scraping URL: ${searchUrl}`);
-      
-      const html = await fetchStream(searchUrl);
-      console.log(`[OLX] HTML length: ${html.length}`);
-      
+      console.log(`[OLX] Navigating: ${searchUrl}`);
+      await this._preparePage(page, searchUrl);
+      const html = await page.content();
       const $ = require('cheerio').load(html);
       
       // Use multiple selector strategies for OLX with extensive debugging
@@ -705,6 +761,7 @@ class ScraperService {
       }
       
       console.log(`[OLX] Scraped ${properties.length} properties`);
+      await page.close();
       if (properties.length > 0) {
         console.log('[OLX] Sample scraped data:', JSON.stringify(properties[0], null, 2));
       }
@@ -722,13 +779,11 @@ class ScraperService {
   async _scrapeMagicBricksWithPuppeteer(city, limit) {
     try {
       console.log(`[MagicBricks] Scraping for ${city}...`);
-      
+      const page = await this._newPage();
       const searchUrl = `https://www.magicbricks.com/property-for-sale/residential-real-estate?cityName=${city}`;
-      console.log(`[MagicBricks] Scraping URL: ${searchUrl}`);
-      
-      const html = await fetchStream(searchUrl);
-      console.log(`[MagicBricks] HTML length: ${html.length}`);
-      
+      console.log(`[MagicBricks] Navigating: ${searchUrl}`);
+      await this._preparePage(page, searchUrl);
+      const html = await page.content();
       const $ = require('cheerio').load(html);
       
       // Use multiple selector strategies for MagicBricks with extensive debugging
@@ -919,6 +974,7 @@ class ScraperService {
       }
       
       console.log(`[MagicBricks] Scraped ${properties.length} properties`);
+      await page.close();
       return properties;
       
     } catch (error) {
